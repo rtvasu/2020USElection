@@ -7,40 +7,63 @@ import getpass
 import sys
 
 
-
 class electionDB:
 
-  def __init__(self, cursor):
-      self.cursor = cursor
+    def __init__(self, cursor):
+        self.cursor = cursor
 
-  def totalVotesByState(self, state):
 
-      cursor = self.cursor
-      filterByStateCond = ""
-      if (state != 'a' and state != 'A'):
-          filterByStateCond = "having c.state = '" + state + "'"
+    def getListioCountiesUnderState(self, state):
 
-      query = ("""SELECT  c.state as state ,
+        cursor = self.cursor
+
+        query = ("""SELECT name as countyName FROM County WHERE state = '%s'""" % state)
+        cursor.execute(query)
+        result = cursor.fetchall()
+        return result
+
+    def totalVotesByState(self, state):
+
+        cursor = self.cursor
+        filterByStateCond = ""
+        if (state != 'a' and state != 'A'):
+            filterByStateCond = "having c.state = '" + state + "'"
+
+        query = ("""SELECT  c.state as state ,
                           sum(total_votes) as total_votes_2020
                   FROM VotesPerCounty v
                   inner join County c on (v.county = c.name)
                   group by c.state
                   %s
                   order by c.state asc""" % filterByStateCond)
-      cursor.execute(query)
-      result = cursor.fetchall()
-      return result
+        cursor.execute(query)
+        result = cursor.fetchall()
+        return result
 
 
 
-  def demographicsByState(self, state):
+    def totalVotesByCounty(self, county):
 
-      cursor = self.cursor
-      filterByStateCond = ""
-      if (state != 'a' and state != 'A'):
-          filterByStateCond = "cs.state = '" + state + "' and"
+        cursor = self.cursor
+        query = ("""SELECT  c.name as county ,
+                          sum(total_votes) as total_votes_2020
+                  FROM VotesPerCounty v
+                  inner join County c on (v.county = c.name)
+                  group by c.name
+                  having c.name = '%s'
+                  order by c.name asc""" % county)
+        cursor.execute(query)
+        result = cursor.fetchall()
+        return result
 
-      query = ("""select cs.state as 'States', 
+    def demographicsByState(self, state):
+
+        cursor = self.cursor
+        filterByStateCond = ""
+        if (state != 'a' and state != 'A'):
+            filterByStateCond = "cs.state = '" + state + "' and"
+
+        query = ("""select cs.state as 'States', 
                          ROUND(sum(pop_per_county),2) as 'Total Population',
                          ROUND((sum(demographicMen)/sum(pop_per_county))*100,2) as 'Percentage of Men',
                          ROUND((sum(demographicWomen)/sum(pop_per_county))*100,2) as 'Percentage of Women',
@@ -71,6 +94,6 @@ class electionDB:
                      group by cs.state
                      having %s cs.state != 'Alaska'
                      order by cs.state asc""" % filterByStateCond)
-      cursor.execute(query)
-      result = cursor.fetchall()
-      return result
+        cursor.execute(query)
+        result = cursor.fetchall()
+        return result
