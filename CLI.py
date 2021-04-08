@@ -3,9 +3,9 @@ from mysql.connector import errorcode
 import locale
 import getpass
 from electionDB import electionDB
-
-
+from os import system, name
 import os
+import time
 
 def cls():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -43,13 +43,20 @@ else:
     results = electionDB(cursor)
 
     """
+        MAIN VARIABLES
+    """
+    continue1 = 1
+
+
+    """
         MAIN
     """
 
     while (1):
 
+        cls()
         print(
-            "------------------------------- Welcome to the 2020 election database system -------------------------------")
+            "--------------------- Welcome to the 2020 election database system ---------------------")
         print("\n")
 
 
@@ -62,12 +69,13 @@ else:
 
         command = input ("Your command: ")
         print("\n")
+        cls()
 
         if (command == 's'):
 
 
             while (1):
-
+                continue_1 = 1
                 print("............................................................................................ ...")
                 print ("Welcome to search. These are the actions you can do. Please choose one of them: ")
 
@@ -80,26 +88,38 @@ else:
                 print("(7) Demographics of a county")
                 print("( ANY KEY ) Exit")
                 print("\n")
+
                 command_s = input("Your command: ")
                 print("\n")
+                cls()
 
+                # (1) Voting results for a state
                 if (command_s == '1'):
-
-                    print("(1) Voting results for a state")
-                    print("\n")
-                    stateInput = input("Please enter a state: ")
+                    print("----------------------- Voting results for a state ---------------------------")
                     print("\n")
 
-                    totalVotes = results.totalVotesByState(stateInput)
-                    if (not totalVotes):
-                        print("Please try again.")
+                    while(continue1 == 1):
+                        stateInput = input("Please enter a state: ")
+
+                        totalVotes = results.totalVotesByState(stateInput)
+                        if (not totalVotes):
+                            print("Please try again.")
+                            print("\n")
+                        else:
+                            for i in totalVotes:
+                                state = locale.format_string("%s", i[0], grouping=True)
+                                votes = locale.format_string("%d", i[1], grouping=True)
+                                print("The total votes in ", state, " is ", votes, " votes.")
+                            print("\n")
+
+                        # ask if I can continue
+                        if (input("Continue? Y/N: ") == 'y'):
+                            continue1 = 1
+                        else:
+                            continue1 = 0
+                            cls()
                         print("\n")
-                    else:
-                        for i in totalVotes:
-                            state = locale.format_string("%s", i[0], grouping=True)
-                            votes = locale.format_string("%d", i[1], grouping=True)
-                            print("The total votes in ", state, " is ", votes, " votes.")
-                        print("\n")
+
 
 
                 elif (command_s == '2'):
@@ -277,8 +297,47 @@ else:
                     break
 
         elif (command == 'i'):
-            print("Insertion coming soon")
-            print("\n")
+
+
+            while (1):
+                print(
+                    "........................... Insert data ..................................")
+                print("Here, you can mark a state or county as blue or red, and we will calculate how the voting results will change.")
+                print("\n")
+                ee = input("Continue? Y/N: ")
+                cls()
+
+                if (ee == 'n'):
+                    break
+
+                print("You can set the winning party for a state or county")
+                print("\n")
+                state = input("Please enter a state: ")
+                yesorno = input("Do you want to select a county? Y/N")
+                print("\n")
+
+
+                county = ''
+                if (yesorno == 'y'):
+
+                    # List of counties
+                    stateList = results.getListioCountiesUnderState(state)
+                    for i in stateList:
+                        print("- " + i[0])
+                    print("\n")
+
+                    county = input("Please enter a county: ")
+
+                    # Get the winning and losing votes
+                    print ("Current Results: ")
+
+                    # insert data
+                    winningParty = input("State winning party: ")
+
+                elif (yesorno == 'n'):
+                    print(state)
+                    print(county)
+
 
 
         elif (command == 'd'):

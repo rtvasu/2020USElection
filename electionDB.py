@@ -188,3 +188,12 @@ class electionDB:
         cursor.execute(query)
         result = cursor.fetchall()
         return result
+
+
+    def votingResultsbyParty(self, state, county):
+
+        return 0
+
+    def addResults(self, state, county):
+
+        return 0
