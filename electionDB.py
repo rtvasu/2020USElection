@@ -9,9 +9,9 @@ import sys
 
 class electionDB:
 
-    def __init__(self, cursor):
+    def __init__(self, cursor, cnx):
         self.cursor = cursor
-
+        self.cnx = cnx
 
     def getListioCountiesUnderState(self, state):
 
@@ -44,8 +44,6 @@ class electionDB:
         result = cursor.fetchall()
         return result
 
-
-
     def totalVotesByCounty(self, state, county):
 
         cursor = self.cursor
@@ -60,12 +58,10 @@ class electionDB:
                     inner join States s on (c.stateid = s.stateid)
                     group by c.name, s.name
                     having s.name = '%s' %s
-                     order by c.name asc""" % (state,filterByCountyCond))
+                     order by c.name asc""" % (state, filterByCountyCond))
         cursor.execute(query)
         result = cursor.fetchall()
         return result
-
-
 
     def demographicsByState(self, state):
 
@@ -108,10 +104,6 @@ class electionDB:
         result = cursor.fetchall()
         return result
 
-
-
-
-
     def demographicsByCounty(self, state, county):
 
         cursor = self.cursor
@@ -153,7 +145,6 @@ class electionDB:
         result = cursor.fetchall()
         return result
 
-
     def tweetsBiden(self, state, number):
 
         cursor = self.cursor
@@ -170,7 +161,6 @@ class electionDB:
         cursor.execute(query)
         result = cursor.fetchall()
         return result
-
 
     def tweetsTrump(self, state, number):
 
@@ -189,11 +179,79 @@ class electionDB:
         result = cursor.fetchall()
         return result
 
+    def votingResultsbyPartybyState(self, state):
 
-    def votingResultsbyParty(self, state, county):
+        cursor = self.cursor
 
-        return 0
+        query = ("""SELECT  s.name as state, p.abbreviation as party ,
+                   sum(total_votes) as total_votes_2020
+               FROM VotesPerCounty v
+               inner join County c on (v.countyid = c.countyid)
+               inner join States s on (c.stateid = s.stateid)
+               inner join Party p on (p.partyid = v.partyid)
+               group by s.name, p.abbreviation 
+               having s.name = '%s'
+                order by sum(total_votes) desc""" % (state))
+        cursor.execute(query)
+        result = cursor.fetchall()
+        return result
 
-    def addResults(self, state, county):
+    def votingResultsbyPartybyCounty(self, state, county):
+
+        cursor = self.cursor
+
+        query = ("""SELECT  s.name as state, c.name as county, p.abbreviation as party ,
+               sum(total_votes) as total_votes_2020
+           FROM VotesPerCounty v
+           inner join County c on (v.countyid = c.countyid)
+           inner join States s on (c.stateid = s.stateid)
+            inner join Party p on (p.partyid = v.partyid)
+           group by s.name, c.name, p.abbreviation 
+           having s.name = '%s' and c.name = '%s'
+            order by sum(total_votes) desc""" % (state, county))
+        cursor.execute(query)
+        result = cursor.fetchall()
+        return result
+
+    def addResults(self, state, county, party, result):
+        cursor = self.cursor
+        cnx = self.cnx
+
+        countyid = 0
+        # get stateid and countyid
+        if (county != 0):
+            query = ("""select s.stateid, c.countyid from County c
+                        inner join States s on (s.stateid = c.stateid)
+                        where s.name = '%s' 
+                        and c.name = '%s'""" % (state, county))
+            cursor.execute(query)
+            result1 = cursor.fetchall()
+            for i in result1:
+                stateid = i[0]
+                countyid = i[1]
+        else:
+            query = ("""select s.stateid from States s where s.name = '%s'""" % (state))
+            cursor.execute(query)
+            result1 = cursor.fetchall()
+            for i in result1:
+                stateid = i[0]
+
+        # get partyid
+        query = ("""select partyid from Party where abbreviation = '%s'""" % party)
+        cursor.execute(query)
+        result2 = cursor.fetchall()
+        for i in result2:
+            partyid = i[0]
+
+        # QUERY
+        if countyid == 0:
+            query = ("""INSERT INTO winAndLosses (stateid, countyid, partyid, result) 
+                    VALUES (%d, NULL, %d, '%s')""" % (stateid, partyid, result))
+        else:
+            query = ("""INSERT INTO winAndLosses (stateid, countyid, partyid, result) 
+                    VALUES (%d, %d, %d, '%s')""" % (stateid, countyid, partyid, result))
+        cursor.execute(query)
+
+        cnx.commit()
 
         return 0

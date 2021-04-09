@@ -7,8 +7,10 @@ from os import system, name
 import os
 import time
 
+
 def cls():
     os.system('cls' if os.name == 'nt' else 'clear')
+
 
 """
     Conf
@@ -40,13 +42,12 @@ else:
         Configure DB Object
     """
     cursor = cnx.cursor()
-    results = electionDB(cursor)
+    results = electionDB(cursor,cnx)
 
     """
         MAIN VARIABLES
     """
-    continue1 = 1
-
+    continue1=continue2=continue3=continue4=continue5=continue6=continue7 = 1
 
     """
         MAIN
@@ -59,25 +60,24 @@ else:
             "--------------------- Welcome to the 2020 election database system ---------------------")
         print("\n")
 
-
-        #Main Screen
+        # Main Screen
         print("What do you want to do?")
         print("(S) Get statistics")
         print("(I) Insert Data")
         print("(D) Data Mine")
         print("\n")
 
-        command = input ("Your command: ")
+        command = input("Your command: ")
         print("\n")
         cls()
 
         if (command == 's'):
 
-
             while (1):
                 continue_1 = 1
-                print("............................................................................................ ...")
-                print ("Welcome to search. These are the actions you can do. Please choose one of them: ")
+                print(
+                    "............................................................................................ ...")
+                print("Welcome to search. These are the actions you can do. Please choose one of them: ")
 
                 print("(1) Voting results for a state")
                 print("(2) Voting results for all states")
@@ -98,7 +98,7 @@ else:
                     print("----------------------- Voting results for a state ---------------------------")
                     print("\n")
 
-                    while(continue1 == 1):
+                    while (continue1 == 1):
                         stateInput = input("Please enter a state: ")
 
                         totalVotes = results.totalVotesByState(stateInput)
@@ -127,15 +127,24 @@ else:
                     print("(2) Voting results for all states")
                     print("\n")
 
-                    totalVotes = results.totalVotesByState('A')
-                    if (not totalVotes):
-                        print("Please try again.")
-                        print("\n")
-                    else:
-                        for i in totalVotes:
-                            state = locale.format_string("%s", i[0], grouping=True)
-                            votes = locale.format_string("%d", i[1], grouping=True)
-                            print("The total votes in ", state, " is ", votes, " votes.")
+                    while (continue2 == 1):
+                        totalVotes = results.totalVotesByState('A')
+                        if (not totalVotes):
+                            print("Please try again.")
+                            print("\n")
+                        else:
+                            for i in totalVotes:
+                                state = locale.format_string("%s", i[0], grouping=True)
+                                votes = locale.format_string("%d", i[1], grouping=True)
+                                print("The total votes in ", state, " is ", votes, " votes.")
+                            print("\n")
+
+                        # ask if I can continue
+                        if (input("Continue? Y/N: ") == 'y'):
+                            continue2 = 1
+                        else:
+                            continue2 = 0
+                            cls()
                         print("\n")
 
 
@@ -143,28 +152,38 @@ else:
                 elif (command_s == '3'):
                     print("(3) Voting results for a county")
                     print("\n")
-                    askState = input("Which state? ")
-                    print("\n")
-                    stateList = results.getListioCountiesUnderState(askState)
-                    if (not stateList):
-                        print("Please try again.")
-                        print("\n")
-                    else:
-                        for i in stateList:
-                            print(i[0])
-                        print("\n")
 
-                        county = input(
-                            "Here is a list of counties in this state. Please choose a county to view results for: ")
-                        countyResults = results.totalVotesByCounty(askState, county)
-
-                        if (not countyResults):
+                    while (continue3 == 1):
+                        askState = input("Which state? ")
+                        print("\n")
+                        stateList = results.getListioCountiesUnderState(askState)
+                        if (not stateList):
                             print("Please try again.")
                             print("\n")
                         else:
-                            for i in countyResults:
-                                votes = locale.format_string("%d", i[2], grouping=True)
-                                print("The total votes in ", county, " is ", votes, " votes.")
+                            for i in stateList:
+                                print(i[0])
+                            print("\n")
+
+                            county = input(
+                                "Here is a list of counties in this state. Please choose a county to view results for: ")
+                            countyResults = results.totalVotesByCounty(askState, county)
+
+                            if (not countyResults):
+                                print("Please try again.")
+                                print("\n")
+                            else:
+                                for i in countyResults:
+                                    votes = locale.format_string("%d", i[2], grouping=True)
+                                    print("The total votes in ", county, " is ", votes, " votes.")
+                                print("\n")
+
+                            # ask if I can continue
+                            if (input("Continue? Y/N: ") == 'y'):
+                                continue3 = 1
+                            else:
+                                continue3 = 0
+                                cls()
                             print("\n")
 
 
@@ -172,23 +191,33 @@ else:
                 elif (command_s == '4'):
                     print("(4) Voting results for all counties in a state")
                     print("\n")
-                    askState = input("Which state? ")
-                    print("\n")
-                    stateList = results.getListioCountiesUnderState(askState)
-                    if (not stateList):
-                        print("Please try again.")
-                        print("\n")
-                    else:
-                        countyResults = results.totalVotesByCounty(askState, 'A')
 
-                        if (not countyResults):
+                    while (continue4 == 1):
+                        askState = input("Which state? ")
+                        print("\n")
+                        stateList = results.getListioCountiesUnderState(askState)
+                        if (not stateList):
                             print("Please try again.")
                             print("\n")
                         else:
-                            for i in countyResults:
-                                county = locale.format_string("%s", i[1], grouping=True)
-                                votes = locale.format_string("%d", i[2], grouping=True)
-                                print("The total votes in ", county, " is ", votes, " votes.")
+                            countyResults = results.totalVotesByCounty(askState, 'A')
+
+                            if (not countyResults):
+                                print("Please try again.")
+                                print("\n")
+                            else:
+                                for i in countyResults:
+                                    county = locale.format_string("%s", i[1], grouping=True)
+                                    votes = locale.format_string("%d", i[2], grouping=True)
+                                    print("The total votes in ", county, " is ", votes, " votes.")
+                                print("\n")
+
+                            # ask if I can continue
+                            if (input("Continue? Y/N: ") == 'y'):
+                                continue4 = 1
+                            else:
+                                continue4 = 0
+                                cls()
                             print("\n")
 
 
@@ -198,99 +227,129 @@ else:
                 elif (command_s == '5'):
                     print("(5) Get the most popular tweets from a state")
                     print("\n")
-                    stateInput = input("Please enter a state: ")
-                    print("\n")
-                    numberOfTweets = input("How many tweets do you want to view? ")
-                    print("\n")
 
-                    bidenTweets = results.tweetsBiden(stateInput, numberOfTweets)
-                    if (not bidenTweets):
-                        print("Please try again.")
+                    while (continue5 == 1):
+                        stateInput = input("Please enter a state: ")
                         print("\n")
-                    else:
-                        print ("Most popular tweets under #TweetsBiden for %s:" % stateInput)
-                        for i in bidenTweets:
-                            tweet = locale.format_string("%s", i[2], grouping=True)
-                            likes = locale.format_string("%d", i[3], grouping=True)
-                            retweets = locale.format_string("%d", i[4], grouping=True)
-                            print(" - " + tweet)
-                            print("(Likes: " + likes + ", Retweets: ", retweets + ")")
+                        numberOfTweets = input("How many tweets do you want to view? ")
+                        print("\n")
+
+                        bidenTweets = results.tweetsBiden(stateInput, numberOfTweets)
+                        if (not bidenTweets):
+                            print("Please try again.")
                             print("\n")
-                        print("\n")
-
-                    print("--------------------------------------------------------------------------")
-
-                    trumpTweets = results.tweetsTrump(stateInput, numberOfTweets)
-                    if (not trumpTweets):
-                        print("Please try again.")
-                        print("\n")
-                    else:
-                        print("Most popular tweets under #TweetsTrump for %s:" % stateInput)
-                        for i in trumpTweets:
-                            tweet = locale.format_string("%s", i[2], grouping=True)
-                            likes = locale.format_string("%d", i[3], grouping=True)
-                            retweets = locale.format_string("%d", i[4], grouping=True)
-                            print(" - " + tweet)
-                            print("(Likes: " + likes + ", Retweets: ", retweets + ")")
+                        else:
+                            print("Most popular tweets under #TweetsBiden for %s:" % stateInput)
+                            for i in bidenTweets:
+                                tweet = locale.format_string("%s", i[2], grouping=True)
+                                likes = locale.format_string("%d", i[3], grouping=True)
+                                retweets = locale.format_string("%d", i[4], grouping=True)
+                                print(" - " + tweet)
+                                print("(Likes: " + likes + ", Retweets: ", retweets + ")")
+                                print("\n")
                             print("\n")
+
+                        print("--------------------------------------------------------------------------")
+
+                        trumpTweets = results.tweetsTrump(stateInput, numberOfTweets)
+                        if (not trumpTweets):
+                            print("Please try again.")
+                            print("\n")
+                        else:
+                            print("Most popular tweets under #TweetsTrump for %s:" % stateInput)
+                            for i in trumpTweets:
+                                tweet = locale.format_string("%s", i[2], grouping=True)
+                                likes = locale.format_string("%d", i[3], grouping=True)
+                                retweets = locale.format_string("%d", i[4], grouping=True)
+                                print(" - " + tweet)
+                                print("(Likes: " + likes + ", Retweets: ", retweets + ")")
+                                print("\n")
+                            print("\n")
+
+                        # ask if I can continue
+                        if (input("Continue? Y/N: ") == 'y'):
+                            continue5 = 1
+                        else:
+                            continue5 = 0
+                            cls()
                         print("\n")
 
 
                 elif (command_s == '6'):
                     print("(6) Demographics of a state")
                     print("\n")
-                    state = input("To search for a particular state, enter a state: ")
-                    print("\n")
-                    demographics = results.demographicsByState(state)
 
-                    if (not demographics):
-                        print("Please try again.")
+                    while (continue6 == 1):
+                        state = input("To search for a particular state, enter a state: ")
                         print("\n")
-                    else:
-                        for i in demographics:
-                            print("-- ", locale.format_string("%s", i[0], grouping=True), " Demographics --")
-                            print("Total Population - ", locale.format_string("%d", i[1], grouping=True))
-                            print("Men - ", locale.format_string("%s", i[2], grouping=True), "%")
-                            print("Women - ", locale.format_string("%s", i[3], grouping=True), "%")
-                            print("White - ", locale.format_string("%s", i[4], grouping=True), "%")
-                            print("Black - ", locale.format_string("%s", i[5], grouping=True), "%")
-                            print("Hispanic - ", locale.format_string("%s", i[6], grouping=True), "%")
-                            print("Asian - ", locale.format_string("%s", i[7], grouping=True), "%")
-                            print("Native - ", locale.format_string("%s", i[8], grouping=True), "%")
-                        print("\n")
-
-
-                elif (command_s == '7'):
-                    print("(7) Demographics of a county")
-                    print("\n")
-                    askState = input("Which state? ")
-                    stateList = results.getListioCountiesUnderState(askState)
-                    if (not stateList):
-                        print("Please try again.")
-                        print("\n")
-                    else:
-                        for i in stateList:
-                            print(i[0])
-                        print("\n")
-
-                        county = input(
-                            "Here is a list of counties in this state. Please choose a county to view results for: ")
-                        demographics = results.demographicsByCounty(askState, county)
+                        demographics = results.demographicsByState(state)
 
                         if (not demographics):
                             print("Please try again.")
                             print("\n")
                         else:
                             for i in demographics:
-                                print("-- ", locale.format_string("%s", i[1], grouping=True), " Demographics --")
-                                print("Total Population - ", locale.format_string("%d", i[2], grouping=True))
-                                print("Men - ", locale.format_string("%s", i[3], grouping=True), "%")
-                                print("Women - ", locale.format_string("%s", i[4], grouping=True), "%")
-                                print("White - ", locale.format_string("%s", i[5], grouping=True), "%")
-                                print("Black - ", locale.format_string("%s", i[6], grouping=True), "%")
-                                print("Hispanic - ", locale.format_string("%s", i[7], grouping=True), "%")
-                                print("Asian - ", locale.format_string("%s", i[8], grouping=True), "%")
-                                print("Native - ", locale.format_string("%s", i[9], grouping=True), "%")
+                                print("-- ", locale.format_string("%s", i[0], grouping=True), " Demographics --")
+                                print("Total Population - ", locale.format_string("%d", i[1], grouping=True))
+                                print("Men - ", locale.format_string("%s", i[2], grouping=True), "%")
+                                print("Women - ", locale.format_string("%s", i[3], grouping=True), "%")
+                                print("White - ", locale.format_string("%s", i[4], grouping=True), "%")
+                                print("Black - ", locale.format_string("%s", i[5], grouping=True), "%")
+                                print("Hispanic - ", locale.format_string("%s", i[6], grouping=True), "%")
+                                print("Asian - ", locale.format_string("%s", i[7], grouping=True), "%")
+                                print("Native - ", locale.format_string("%s", i[8], grouping=True), "%")
+                            print("\n")
+
+                        # ask if I can continue
+                        if (input("Continue? Y/N: ") == 'y'):
+                            continue6 = 1
+                        else:
+                            continue6 = 0
+                            cls()
+                        print("\n")
+
+
+                elif (command_s == '7'):
+                    print("(7) Demographics of a county")
+                    print("\n")
+
+                    while (continue7 == 1):
+                        askState = input("Which state? ")
+                        stateList = results.getListioCountiesUnderState(askState)
+                        if (not stateList):
+                            print("Please try again.")
+                            print("\n")
+                        else:
+                            for i in stateList:
+                                print(i[0])
+                            print("\n")
+
+                            county = input(
+                                "Here is a list of counties in this state. Please choose a county to view results for: ")
+                            demographics = results.demographicsByCounty(askState, county)
+
+                            if (not demographics):
+                                print("Please try again.")
+                                print("\n")
+                            else:
+                                for i in demographics:
+                                    print("-- ", locale.format_string("%s", i[1], grouping=True), " Demographics --")
+                                    print("Total Population - ", locale.format_string("%d", i[2], grouping=True))
+                                    print("Men - ", locale.format_string("%s", i[3], grouping=True), "%")
+                                    print("Women - ", locale.format_string("%s", i[4], grouping=True), "%")
+                                    print("White - ", locale.format_string("%s", i[5], grouping=True), "%")
+                                    print("Black - ", locale.format_string("%s", i[6], grouping=True), "%")
+                                    print("Hispanic - ", locale.format_string("%s", i[7], grouping=True), "%")
+                                    print("Asian - ", locale.format_string("%s", i[8], grouping=True), "%")
+                                    print("Native - ", locale.format_string("%s", i[9], grouping=True), "%")
+                                print("\n")
+
+                            # ask if I can continue
+                            if (input("Continue? Y/N: ") == 'y'):
+                                continue7 = 1
+                            else:
+                                continue7 = 0
+                                cls()
                             print("\n")
                 else:
                     print("Thank you!")
@@ -298,12 +357,12 @@ else:
 
         elif (command == 'i'):
 
+            print("........................... Insert data ..................................")
+            print(
+                "Here, you can mark a state or county as blue or red, and we will calculate how the voting results will change.")
+            print("\n")
 
             while (1):
-                print(
-                    "........................... Insert data ..................................")
-                print("Here, you can mark a state or county as blue or red, and we will calculate how the voting results will change.")
-                print("\n")
                 ee = input("Continue? Y/N: ")
                 cls()
 
@@ -316,8 +375,7 @@ else:
                 yesorno = input("Do you want to select a county? Y/N")
                 print("\n")
 
-
-                county = ''
+                # Getting the county
                 if (yesorno == 'y'):
 
                     # List of counties
@@ -329,14 +387,55 @@ else:
                     county = input("Please enter a county: ")
 
                     # Get the winning and losing votes
-                    print ("Current Results: ")
+                    print("Current Results: ")
+                    countyResults = results.votingResultsbyPartybyCounty(state, county)
+
+                    if (not countyResults):
+                        print("Sorry, no results available for this county. Please try again")
+                        print("\n")
+                    else:
+                        for i in countyResults:
+                            party = locale.format_string("%s", i[2], grouping=True)
+                            totalVotes = locale.format_string("%d", i[3], grouping=True)
+                            print(party + " = " + totalVotes + " votes")
+                        print("\n")
 
                     # insert data
-                    winningParty = input("State winning party: ")
+                    party = input("State party from above list: ")
+                    result = input("State result of party: ")
+                    success = results.addResults(state, county, party, result)
+
+                    if success == 0:
+                        print("Successfully added county!")
+                    else:
+                        print("Sorry, try again")
+
 
                 elif (yesorno == 'n'):
-                    print(state)
-                    print(county)
+                    # Get the winning and losing votes
+                    print("Current Results: ")
+
+                    stateResults = results.votingResultsbyPartybyState(state)
+
+                    if (not stateResults):
+                        print("Sorry, no results available for this state. Please try again")
+                        print("\n")
+                    else:
+                        for i in stateResults:
+                            party = locale.format_string("%s", i[1], grouping=True)
+                            totalVotes = locale.format_string("%d", i[2], grouping=True)
+                            print(party + " = " + totalVotes + " votes")
+                        print("\n")
+
+                    # insert data
+                    party = input("State party from above list: ")
+                    result = input("State result of party: ")
+                    success = results.addResults(state, 0, party, result)
+
+                    if success == 0:
+                        print("Successfully added state!")
+                    else:
+                        print("Sorry, try again")
 
 
 
