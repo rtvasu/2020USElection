@@ -498,32 +498,51 @@ else:
 
             print("\n")
 
-            # while 1:
-            ee = input("Continue? Y/N: ")
-            cls()
+            data = results.getData("california", "klee")
+            success = results.generateCSV(data)
+            testing = results.computeData()
 
-            if ee.lower() == 'n':
-                break
+            wow = input ("Stop. Wait a minute...")
 
-            print("Testing creation of a CSV")
 
-            state = input("Which state? ")
-            print("\n")
-            stateList = results.getListioCountiesUnderState(state)
 
-            if not stateList:
-                print("Please try again.")
-                print("\n")
-            else:
-                for i in stateList:
-                    print(i[0])
-                print("\n")
 
-                county = input("Here is a list of counties in this state. Please choose a county to view results for: ")
 
-                data = results.getData(state, county)
-                success = results.generateCSV(data)
-                print("Done, please check...")
+
+
+
+
+
+
+
+
+
+            # # while 1:
+            # ee = input("Continue? Y/N: ")
+            # cls()
+            #
+            # if ee.lower() == 'n':
+            #     break
+            #
+            # print("Testing creation of a CSV")
+            #
+            # state = input("Which state? ")
+            # print("\n")
+            # stateList = results.getListioCountiesUnderState(state)
+            #
+            # if not stateList:
+            #     print("Please try again.")
+            #     print("\n")
+            # else:
+            #     for i in stateList:
+            #         print(i[0])
+            #     print("\n")
+            #
+            #     county = input("Here is a list of counties in this state. Please choose a county to view results for: ")
+            #
+            #     data = results.getData(state, county)
+            #     success = results.generateCSV(data)
+            #     print("Done, please check...")
 
     # remember to close connection
     cursor.close()
