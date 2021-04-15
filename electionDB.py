@@ -13,22 +13,29 @@ class electionDB:
     def __init__(self, cursor, cnx):
         self.cursor = cursor
         self.cnx = cnx
+    
+    def executeQuery(self, query):
+        cursor = self.cursor
+        try:
+            cursor.execute(query)
+            result = cursor.fetchall()
+            return result
+        except mysql.connector.Error as err:
+            if err.errno == 2013:
+                print("Lost connection, reconnect")
+                return -1
+            else:
+                print(err)
 
     def getListioCountiesUnderState(self, state):
-
-        cursor = self.cursor
-
         query = ("""SELECT c.name as countyName 
                     FROM County c
                     inner join States s on (c.stateid = s.stateid)
                     WHERE s.name = '%s'""" % state)
-        cursor.execute(query)
-        result = cursor.fetchall()
+        result = self.executeQuery(query)
         return result
 
     def totalVotesByState(self, state):
-
-        cursor = self.cursor
         filterByStateCond = ""
         if state.lower != 'a':
             filterByStateCond = "having s.name = '" + state + "'"
@@ -41,13 +48,10 @@ class electionDB:
                     group by s.name 
                     %s
                     order by s.name asc""" % filterByStateCond)
-        cursor.execute(query)
-        result = cursor.fetchall()
+        result = self.executeQuery(query)
         return result
 
     def totalVotesByCounty(self, state, county):
-
-        cursor = self.cursor
         filterByCountyCond = ""
         if county.lower != 'a':
             filterByCountyCond = "and c.name = '" + county + "'"
@@ -60,13 +64,10 @@ class electionDB:
                     group by c.name, s.name
                     having s.name = '%s' %s
                      order by c.name asc""" % (state, filterByCountyCond))
-        cursor.execute(query)
-        result = cursor.fetchall()
+        result = self.executeQuery(query)
         return result
 
     def demographicsByState(self, state):
-
-        cursor = self.cursor
         # if (state != 'a' and state != 'A'):
         filterByStateCond = "ss.name = '" + state + "'"
 
@@ -101,13 +102,10 @@ class electionDB:
                      group by ss.name 
                      having %s
                      order by ss.name asc""" % filterByStateCond)
-        cursor.execute(query)
-        result = cursor.fetchall()
+        result = self.executeQuery(query)
         return result
-
+        
     def demographicsByCounty(self, state, county):
-
-        cursor = self.cursor
         # if (state != 'a' and state != 'A'):
         filterByCountyCond = "and c.name = '" + county + "'"
 
@@ -142,14 +140,10 @@ class electionDB:
                      group by ss.name, co.name
                      having ss.name = '%s' and co.name = '%s'
                      order by ss.name asc""" % (state, county))
-        cursor.execute(query)
-        result = cursor.fetchall()
+        result = self.executeQuery(query)
         return result
 
     def tweetsBiden(self, state, number):
-
-        cursor = self.cursor
-
         if (not number):
             number = 5
 
@@ -159,14 +153,10 @@ class electionDB:
                     WHERE s.name = '%s'
                     ORDER BY t.likes DESC
                     limit %s""" % (state, number))
-        cursor.execute(query)
-        result = cursor.fetchall()
+        result = self.executeQuery(query)
         return result
 
     def tweetsTrump(self, state, number):
-
-        cursor = self.cursor
-
         if (not number):
             number = 5
 
@@ -176,13 +166,10 @@ class electionDB:
                     WHERE s.name = '%s'
                     ORDER BY t.likes DESC
                     limit %s""" % (state, number))
-        cursor.execute(query)
-        result = cursor.fetchall()
+        result = self.executeQuery(query)
         return result
 
     def votingResultsbyPartybyState(self, state, results=0):
-
-        cursor = self.cursor
         limit = ""
         if results == 1:
             limit = " limit 1"
@@ -196,13 +183,10 @@ class electionDB:
                group by s.name, p.name 
                having s.name = '%s'
                 order by sum(total_votes) desc %s""" % (state, limit))
-        cursor.execute(query)
-        result = cursor.fetchall()
+        result = self.executeQuery(query)
         return result
 
     def votingResultsbyPartybyCounty(self, state, county, results):
-
-        cursor = self.cursor
         limit = ""
         if results == 1:
             limit = " limit 1"
@@ -216,12 +200,10 @@ class electionDB:
            group by s.name, c.name, p.name 
            having s.name = '%s' and c.name = '%s'
             order by sum(total_votes) desc %s""" % (state, county, limit))
-        cursor.execute(query)
-        result = cursor.fetchall()
+        result = self.executeQuery(query)
         return result
 
     def addResults(self, state, county, party, result):
-        cursor = self.cursor
         cnx = self.cnx
 
         countyid = 0
@@ -231,22 +213,25 @@ class electionDB:
                         inner join States s on (s.stateid = c.stateid)
                         where s.name = '%s' 
                         and c.name = '%s'""" % (state, county))
-            cursor.execute(query)
-            result1 = cursor.fetchall()
+            result1 = self.executeQuery(query)
+            if (result1 == -1):
+                return -1
             for i in result1:
                 stateid = i[0]
                 countyid = i[1]
         else:
             query = ("""select s.stateid from States s where s.name = '%s'""" % (state))
-            cursor.execute(query)
-            result1 = cursor.fetchall()
+            result1 = self.executeQuery(query)
+            if (result1 == -1):
+                return -1
             for i in result1:
                 stateid = i[0]
 
         # get partyid
         query = ("""select partyid from Party where abbreviation = '%s'""" % party)
-        cursor.execute(query)
-        result2 = cursor.fetchall()
+        result2 = self.executeQuery(query)
+        if (result2 == -1):
+            return -1
         for i in result2:
             partyid = i[0]
 
@@ -257,7 +242,9 @@ class electionDB:
         else:
             query = ("""INSERT INTO winAndLosses (stateid, countyid, partyid, result) 
                     VALUES (%d, %d, %d, '%s')""" % (stateid, countyid, partyid, result))
-        cursor.execute(query)
+        result = self.executeQuery(query)
+        if (result == -1):
+            return -1
 
         cnx.commit()
 
@@ -265,7 +252,6 @@ class electionDB:
 
     # DATA MINING STUFF - results and demographics for a county
     def getData(self, state, county):
-        cursor = self.cursor
 
         query = ("""select ss.name as 'States', 
                     co.name as 'County', 
@@ -309,12 +295,10 @@ class electionDB:
                     group by ss.stateid, co.countyid, vpc.won, p.partyid 
                     having ss.name = '%s' and co.name = '%s' and vpc.won  = 'True'
                     order by ss.name asc""" % (state, county))
-        cursor.execute(query)
-        result = cursor.fetchall()
+        result = self.executeQuery(query)
         return result
 
     def generateCSV(self, data):
-
         cursor = self.cursor
 
         column_names = [i[0] for i in cursor.description]
