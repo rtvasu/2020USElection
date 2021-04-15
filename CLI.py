@@ -593,12 +593,22 @@ else:
             # cls()
             if (leave == 1):
                 break
+            data = results.getData("california", "klee")
+            success = results.generateCSV(data)
+            testing = results.computeData()
 
-            print("Testing creation of a CSV")
+            wow = input ("Stop. Wait a minute...")
 
-            state = input("Which state? ")
-            print("\n")
-            stateList = results.getListioCountiesUnderState(state)
+
+
+
+
+
+
+
+
+
+
 
             if not stateList:
                 print("Please try again.")
@@ -610,7 +620,6 @@ else:
                     print(i[0])
                 print("\n")
 
-                county = input("Here is a list of counties in this state. Please choose a county to view results for: ")
 
                 data = results.getData(state, county)
                 if (data == -1):

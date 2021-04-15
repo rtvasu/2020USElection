@@ -6,6 +6,14 @@ import fire
 import getpass
 import sys
 import csv
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn import metrics
+from sklearn import datasets
+import seaborn as sns
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 class electionDB:
@@ -208,7 +216,7 @@ class electionDB:
 
         countyid = 0
         # get stateid and countyid
-        if (county != 0):
+        if county != 0:
             query = ("""select s.stateid, c.countyid from County c
                         inner join States s on (s.stateid = c.stateid)
                         where s.name = '%s' 
@@ -253,21 +261,20 @@ class electionDB:
     # DATA MINING STUFF - results and demographics for a county
     def getData(self, state, county):
 
-        query = ("""select ss.name as 'States', 
-                    co.name as 'County', 
-                    p.abbreviation as 'winningParty' ,
-                    ROUND(sum(pop_per_county),2) as 'Total Population',
-                    ROUND((sum(demographicMen)/sum(pop_per_county))*100,2) as 'Percentage of Men',
-                    ROUND((sum(demographicWomen)/sum(pop_per_county))*100,2) as 'Percentage of Women',
-                    ROUND((sum(demographicWhite)/sum(pop_per_county))*100,2) as 'Percentage of White',
-                    ROUND((sum(demographicBlack)/sum(pop_per_county))*100,2) as 'Percentage of Black',
-                    ROUND((sum(demographicHispanic)/sum(pop_per_county))*100,2) as 'Percentage of Hispanic',
-                    ROUND((sum(demographicAsian)/sum(pop_per_county))*100,2) as 'Percentage of Asian',
-                    ROUND((sum(demographicNative)/sum(pop_per_county))*100,2) as 'Percentage of Native',
-                    ROUND(sum(income),2) as 'Average Income',
-                    ROUND((sum(demographicPoverty)/sum(pop_per_county))*100,2) as 'Percentage living under poverty',
-                    ROUND((sum(demographicEmployed)/sum(pop_per_county))*100,2) as 'Percentage employed',
-                    ROUND((sum(demographicUnemployment)/sum(pop_per_county))*100,2) as 'Percentage unemployed'
+        query = ("""select 
+                    ROUND(sum(pop_per_county),2) as 'population',
+                    ROUND((sum(demographicMen)/sum(pop_per_county))*100,2) as 'men',
+                    ROUND((sum(demographicWomen)/sum(pop_per_county))*100,2) as 'women',
+                    ROUND((sum(demographicWhite)/sum(pop_per_county))*100,2) as 'white',
+                    ROUND((sum(demographicBlack)/sum(pop_per_county))*100,2) as 'black',
+                    ROUND((sum(demographicHispanic)/sum(pop_per_county))*100,2) as 'hispanic',
+                    ROUND((sum(demographicAsian)/sum(pop_per_county))*100,2) as 'asian',
+                    ROUND((sum(demographicNative)/sum(pop_per_county))*100,2) as 'native',
+                    ROUND(sum(income),2) as 'average_income',
+                    ROUND((sum(demographicPoverty)/sum(pop_per_county))*100,2) as 'poverty',
+                    ROUND((sum(demographicEmployed)/sum(pop_per_county))*100,2) as 'employed',
+                    ROUND((sum(demographicUnemployment)/sum(pop_per_county))*100,2) as 'unemployed',
+                    p.partyid as 'winning_party'
                     from (
                              SELECT  c.name as county, 
                                      c.countyid as countyid,
@@ -293,8 +300,8 @@ class electionDB:
                     inner join Party p on (vpc.partyid = p.partyid)
                     
                     group by ss.stateid, co.countyid, vpc.won, p.partyid 
-                    having ss.name = '%s' and co.name = '%s' and vpc.won  = 'True'
-                    order by ss.name asc""" % (state, county))
+                    having vpc.won  = 'True' and p.partyid = 1 or p.partyid = 2
+                    order by ss.stateid asc""")
         result = self.executeQuery(query)
         return result
 
@@ -302,7 +309,7 @@ class electionDB:
         cursor = self.cursor
 
         column_names = [i[0] for i in cursor.description]
-        fp = open('demographics_and_votes.csv', 'w')
+        fp = open('demographics_and_votes.csv', 'w', encoding="utf-8")
         myFile = csv.writer(fp, lineterminator='\n')
         myFile.writerow(column_names)
         myFile.writerows(data)
@@ -310,7 +317,72 @@ class electionDB:
 
         return 0
 
-    def computerData(self):
+    def computeData(self):
+
+        # define our labels
+        labels = ["Democratic", "Republican"]
+        features = ["population", "men", "women", "white", "black", "hispanic", "asian", "native",
+                    "average_income", "poverty", "employed", "unemployed"]
+        print(labels)
+        print(features)
+        print("\n")
+
+        # load data into numpy array
+        mydata = np.genfromtxt("demographics_and_votes.csv", dtype=None, delimiter=',', names=True)
+
+        # create dataframe
+        data = pd.DataFrame({
+            'population': mydata["population"],
+            'men': mydata["men"],
+            'women': mydata["women"],
+            'white': mydata["white"],
+            'black': mydata["black"],
+            'hispanic': mydata["hispanic"],
+            'asian': mydata["asian"],
+            'native': mydata["native"],
+            'average_income': mydata["average_income"],
+            'poverty': mydata["poverty"],
+            'employed': mydata["employed"],
+            'unemployed': mydata["unemployed"],
+            'winning_party': mydata["winning_party"]
+        })
+        print(data.head())
+
+        X = data[['population', 'men', 'women', 'white', 'black', 'hispanic', 'asian', 'native',
+                  'average_income', 'poverty', 'employed', 'unemployed']]  # Features
+        y = data['winning_party']  # Labels
+
+        # Split dataset into training set and test set
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1)  # 70% training and 30% test
+        X_train.fillna(X_train.mean(), inplace=True)
+        X_test.fillna(X_test.mean(), inplace=True)
+
+        print(np.where(np.isnan(X_train)))
+
+        # Create a Gaussian Classifier
+        clf = RandomForestClassifier(n_estimators=100)
+
+        # Train the model using the training sets
+        clf.fit(X_train, y_train)
+        y_pred = clf.predict(X_test)
+        print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
+
+        # plot
+        feature_imp = pd.Series(clf.feature_importances_, index=features).sort_values(ascending=False)
+        print(feature_imp)
+
+        # Creating a bar plot
+        sns.barplot(x=feature_imp, y=feature_imp.index)
+
+        # Add labels to your graph
+        plt.xlabel('Feature Importance Score')
+        plt.ylabel('Features')
+        plt.title("Visualizing Important Features")
+        plt.legend()
+        plt.show()
+
+
+
         return 0
 
     def predictData(self):
