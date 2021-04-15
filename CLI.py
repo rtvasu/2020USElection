@@ -13,9 +13,8 @@ import time
 import pyfiglet
 
 
-def cls():
-    os.system('cls' if os.name == 'nt' else 'clear')
-
+# def cls():
+#     os.system('cls' if os.name == 'nt' else 'clear')
 
 """
     CONFIGURATION
@@ -37,11 +36,10 @@ config = {
 try:
     cnx = mysql.connector.connect(**config)
 except mysql.connector.Error as err:
-    print("error")
     if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-        print("Something is wrong with your user name or password")
+        print("\033[1;31;40mError: Something is wrong with your user name or password\033[0m")
     elif err.errno == errorcode.ER_BAD_DB_ERROR:
-        print("Database does not exist")
+        print("\033[1;31;40mError: Database does not exist\033[0m")
     else:
         print(err)
 else:
@@ -53,42 +51,42 @@ else:
     results = electionDB(cursor, cnx)
 
     """
-        MAIN VARIABLES
-    """
-    continue1 = continue2 = continue3 = continue4 = continue5 = continue6 = continue7 = 1
-
-    """
         MAIN
     """
-
+    print("..........................................................................................")
+    print("..........................................................................................")
+    print("......................... WELCOME TO 2020 ELECTION DATABASE ..............................")
+    print("..........................................................................................")
+    print("..........................................................................................")
+    print("\n")
+    
     while 1:
+        """
+        MAIN VARIABLES
+        """
+        continue1 = continue2 = continue3 = continue4 = continue5 = continue6 = continue7 = 1
 
-        cls()
-        print("..........................................................................................")
-        print("..........................................................................................")
-        print("......................... WELCOME TO 2020 ELECTION DATABASE ..............................")
-        print("..........................................................................................")
-        print("..........................................................................................")
-        print("\n")
-
+        # cls()
         # Main Screen
-        print("Please select an option and enter the letter: ")
+        print("Please select an option and enter the letter:")
         print("[1] Get statistics")
         print("[2] Insert Data")
         print("[3] Data Mine")
+        print("[4] Exit")
         print("\n")
 
         command = input("Your selection: ")
         print("\n")
-        cls()
+        # cls()
 
         if command.lower() == '1':
 
             while 1:
-                continue_1 = 1
+                continue1 = 1
                 print("..........................................................................................")
-                print("......................................... SEARCH .........................................")
+                print("......................................... WHAT STATS WOULD YOU LIKE TO SEE? .........................................")
                 print("..........................................................................................")
+                print("\n")
 
                 print("Please select an option and enter the number: ")
                 print("[1] Voting results for a state")
@@ -103,7 +101,7 @@ else:
 
                 command_s = input("Your command: ")
                 print("\n")
-                cls()
+                # cls()
 
                 # (1) Voting results for a state
                 if command_s.lower() == '1':
@@ -120,9 +118,10 @@ else:
                         totalResults = results.votingResultsbyPartybyState(stateInput, 1)
 
                         # IF ERROR, TRY AGAIN
-                        if not totalVotes:
-                            print("Please try again.")
-                            print("\n")
+                        if (not totalVotes) or (not totalResults):
+                            print("\033[1;31;40mError: Check if state exists and is spelled correctly.\033[0m\n")
+                        elif (totalVotes == -1 or totalResults == -1):
+                            exit()
 
                         # DISPLAY RESULTS
                         else:
@@ -139,12 +138,17 @@ else:
                             print("\n")
 
                         # ASK TO CONTINUE
-                        if input("Continue? Y/N: ") == 'y':
-                            continue1 = 1
-                        else:
-                            continue1 = 0
-                        cls()
-                        print("\n")
+                        while(1):
+                            yn = input("Continue? Y/N: ")
+                            if yn == 'y':
+                                continue1 = 1
+                                break
+                            elif yn == 'n':
+                                continue1 = 0
+                                break
+                            else:
+                                print("\033[1;31;40mError: Please enter valid input.\033[0m\n")
+                        # cls()
 
 
 
@@ -160,6 +164,8 @@ else:
                         if not totalVotes:
                             print("Please try again.")
                             print("\n")
+                        elif(totalVotes == -1):
+                            exit()
                         else:
                             for i in totalVotes:
                                 state = locale.format_string("%s", i[0], grouping=True)
@@ -168,11 +174,17 @@ else:
                             print("\n")
 
                         # ask if I can continue
-                        if input("Continue? Y/N: ") == 'y':
-                            continue2 = 1
-                        else:
-                            continue2 = 0
-                        cls()
+                        while(1):
+                            yn = input("Continue? Y/N: ")
+                            if yn == 'y':
+                                continue2 = 1
+                                break
+                            elif yn == 'n':
+                                continue2 = 0
+                                break
+                            else:
+                                print("\033[1;31;40mError: Please enter valid input.\033[0m\n")
+                        # cls()
                         print("\n")
 
 
@@ -190,6 +202,8 @@ else:
                         if not stateList:
                             print("Please try again.")
                             print("\n")
+                        elif(stateList == -1):
+                            exit()
                         else:
                             for i in stateList:
                                 print(i[0])
@@ -202,6 +216,8 @@ else:
                             if not countyResults:
                                 print("Please try again.")
                                 print("\n")
+                            elif (countyResults == -1):
+                                exit()
                             else:
                                 for i in countyResults:
                                     votes = locale.format_string("%d", i[2], grouping=True)
@@ -209,11 +225,17 @@ else:
                                 print("\n")
 
                             # ask if I can continue
-                            if input("Continue? Y/N: ") == 'y':
-                                continue3 = 1
-                            else:
-                                continue3 = 0
-                            cls()
+                            while(1):
+                                yn = input("Continue? Y/N: ")
+                                if yn == 'y':
+                                    continue3 = 1
+                                    break
+                                elif yn == 'n':
+                                    continue3 = 0
+                                    break
+                                else:
+                                    print("\033[1;31;40mError: Please enter valid input.\033[0m\n")
+                            # cls()
                             print("\n")
 
 
@@ -231,12 +253,16 @@ else:
                         if not stateList:
                             print("Please try again.")
                             print("\n")
+                        elif(stateList == -1):
+                            exit()
                         else:
                             countyResults = results.totalVotesByCounty(askState, 'A')
 
                             if not countyResults:
                                 print("Please try again.")
                                 print("\n")
+                            elif(countyResults == -1):
+                                exit()
                             else:
                                 for i in countyResults:
                                     county = locale.format_string("%s", i[1], grouping=True)
@@ -245,11 +271,17 @@ else:
                                 print("\n")
 
                             # ask if I can continue
-                            if input("Continue? Y/N: ") == 'y':
-                                continue4 = 1
-                            else:
-                                continue4 = 0
-                            cls()
+                            while(1):
+                                yn = input("Continue? Y/N: ")
+                                if yn == 'y':
+                                    continue4 = 1
+                                    break
+                                elif yn == 'n':
+                                    continue4 = 0
+                                    break
+                                else:
+                                    print("\033[1;31;40mError: Please enter valid input.\033[0m\n")
+                            # cls()
                             print("\n")
 
 
@@ -262,6 +294,7 @@ else:
                     while continue5 == 1:
                         stateInput = input("Please enter a state: ")
                         print("\n")
+                        #TODO: check if stateInput exists before leading onto numberOfTweets
                         numberOfTweets = input("How many tweets do you want to view? ")
                         print("\n")
 
@@ -269,6 +302,8 @@ else:
                         if not bidenTweets:
                             print("Please try again.")
                             print("\n")
+                        elif(bidenTweets == -1):
+                            exit()
                         else:
                             print(
                                 "..........................................................................................")
@@ -291,6 +326,8 @@ else:
                         if not trumpTweets:
                             print("Please try again.")
                             print("\n")
+                        elif (trumpTweets == -1):
+                            exit()
                         else:
                             print(
                                 "..........................................................................................")
@@ -308,11 +345,17 @@ else:
                             print("\n")
 
                         # ask if I can continue
-                        if input("Continue? Y/N: ") == 'y':
-                            continue5 = 1
-                        else:
-                            continue5 = 0
-                        cls()
+                        while(1):
+                            yn = input("Continue? Y/N: ")
+                            if yn == 'y':
+                                continue5 = 1
+                                break
+                            elif yn == 'n':
+                                continue5 = 0
+                                break
+                            else:
+                                print("\033[1;31;40mError: Please enter valid input.\033[0m\n")
+                        # cls()
                         print("\n")
 
 
@@ -330,6 +373,8 @@ else:
                         if not demographics:
                             print("Please try again.")
                             print("\n")
+                        elif (demographics == -1):
+                            exit()
                         else:
                             for i in demographics:
                                 print("-- ", locale.format_string("%s", i[0], grouping=True), " Demographics --")
@@ -344,11 +389,17 @@ else:
                             print("\n")
 
                         # ask if I can continue
-                        if input("Continue? Y/N: ") == 'y':
-                            continue6 = 1
-                        else:
-                            continue6 = 0
-                        cls()
+                        while(1):
+                            yn = input("Continue? Y/N: ")
+                            if yn == 'y':
+                                continue6 = 1
+                                break
+                            elif yn == 'n':
+                                continue6 = 0
+                                break
+                            else:
+                                print("\033[1;31;40mError: Please enter valid input.\033[0m\n")
+                        # cls()
                         print("\n")
 
 
@@ -362,8 +413,10 @@ else:
                         askState = input("Which state? ")
                         stateList = results.getListioCountiesUnderState(askState)
                         if not stateList:
-                            print("Please try again.")
-                            print("\n")
+                            print("Please try again.\n")
+                            continue
+                        elif(stateList == -1):
+                            exit()
                         else:
                             for i in stateList:
                                 print(i[0])
@@ -376,6 +429,8 @@ else:
                             if not demographics:
                                 print("Please try again.")
                                 print("\n")
+                            elif(demographics == -1):
+                                exit()
                             else:
                                 for i in demographics:
                                     print("-- ", locale.format_string("%s", i[1], grouping=True), " Demographics --")
@@ -390,11 +445,17 @@ else:
                                 print("\n")
 
                             # ask if I can continue
-                            if input("Continue? Y/N: ") == 'y':
-                                continue7 = 1
-                            else:
-                                continue7 = 0
-                            cls()
+                            while(1):
+                                yn = input("Continue? Y/N: ")
+                                if yn == 'y':
+                                    continue7 = 1
+                                    break
+                                elif yn == 'n':
+                                    continue7 = 0
+                                    break
+                                else:
+                                    print("\033[1;31;40mError: Please enter valid input.\033[0m\n")
+                            # cls()
                             print("\n")
                 else:
                     print("Thank you!")
@@ -405,12 +466,21 @@ else:
             print("..........................................................................................")
             print(".................................. ADD YOUR COMMENT ......................................")
             print("..........................................................................................")
-
             print("\n")
 
             while 1:
-                ee = input("Continue? Y/N: ")
-                cls()
+                while(1):
+                    yn = input("Continue? Y/N: ")
+                    if yn == 'y':
+                        break
+                    elif yn == 'n':
+                        leave = 1
+                        break
+                    else:
+                        print("\033[1;31;40mError: Please enter valid input.\033[0m\n")
+                # cls()
+                if (leave == 1):
+                    break
 
                 if ee.lower() == 'n':
                     break
@@ -418,16 +488,22 @@ else:
                 print("You can set the winning party for a state or county")
                 print("\n")
                 state = input("Please enter a state: ")
-                yesorno = input("Do you want to select a county? Y/N")
+                yn = input("Do you want to select a county? Y/N")
                 print("\n")
 
                 # Getting the county
-                if yesorno.lower() == 'y':
+                if yn.lower() == 'y':
 
                     # List of counties
                     stateList = results.getListioCountiesUnderState(state)
-                    for i in stateList:
-                        print("- " + i[0])
+                    if not stateList:
+                        print("Please try again.\n")
+                        continue
+                    elif(stateList == -1):
+                        exit()
+                    else:
+                        for i in stateList:
+                            print("- " + i[0])
                     print("\n")
 
                     county = input("Please enter a county: ")
@@ -442,6 +518,8 @@ else:
                     if (not countyResults):
                         print("Sorry, no results available for this county. Please try again")
                         print("\n")
+                    elif (countyResults == -1):
+                        exit()
                     else:
                         for i in countyResults:
                             party = locale.format_string("%s", i[2], grouping=True)
@@ -457,11 +535,13 @@ else:
 
                     if success == 0:
                         print("Successfully added county!")
+                    elif success == -1:
+                        exit()
                     else:
                         print("Sorry, try again")
 
 
-                elif yesorno.lower() == 'n':
+                elif yn.lower() == 'n':
                     # Get the winning and losing votes
                     print("..........................................................................................")
                     print(".................................. CURRENT RESULTS .......................................")
@@ -472,6 +552,8 @@ else:
                     if not stateResults:
                         print("Sorry, no results available for this state. Please try again")
                         print("\n")
+                    elif (stateResults == -1):
+                        exit()
                     else:
                         for i in stateResults:
                             party = locale.format_string("%s", i[1], grouping=True)
@@ -498,6 +580,19 @@ else:
 
             print("\n")
 
+            # while 1:
+            while(1):
+                yn = input("Continue? Y/N: ")
+                if yn == 'y':
+                    break
+                elif yn == 'n':
+                    leave = 1
+                    break
+                else:
+                    print("\033[1;31;40mError: Please enter valid input.\033[0m\n")
+            # cls()
+            if (leave == 1):
+                break
             data = results.getData("california", "klee")
             success = results.generateCSV(data)
             testing = results.computeData()
@@ -515,34 +610,26 @@ else:
 
 
 
+            if not stateList:
+                print("Please try again.")
+                print("\n")
+            elif(stateList == -1):
+                exit()
+            else:
+                for i in stateList:
+                    print(i[0])
+                print("\n")
 
 
-            # # while 1:
-            # ee = input("Continue? Y/N: ")
-            # cls()
-            #
-            # if ee.lower() == 'n':
-            #     break
-            #
-            # print("Testing creation of a CSV")
-            #
-            # state = input("Which state? ")
-            # print("\n")
-            # stateList = results.getListioCountiesUnderState(state)
-            #
-            # if not stateList:
-            #     print("Please try again.")
-            #     print("\n")
-            # else:
-            #     for i in stateList:
-            #         print(i[0])
-            #     print("\n")
-            #
-            #     county = input("Here is a list of counties in this state. Please choose a county to view results for: ")
-            #
-            #     data = results.getData(state, county)
-            #     success = results.generateCSV(data)
-            #     print("Done, please check...")
+                data = results.getData(state, county)
+                if (data == -1):
+                    exit()
+                success = results.generateCSV(data)
+                print("Done, please check...")
+        elif command.lower() == '4':
+            exit()
+        else:
+            print("\033[1;31;40mError: option unavailable, check again:\033[0m\n")
 
     # remember to close connection
     cursor.close()
