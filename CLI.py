@@ -3,12 +3,17 @@ from mysql.connector import errorcode
 import getpass
 from electionDB import electionDB
 import locale
-import numbers
 from prettytable import PrettyTable
-import itertools
+import warnings
+from pandas.core.common import SettingWithCopyWarning
 
 
 def startup():
+    warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
+    warnings.simplefilter(action="ignore", category=UserWarning)
+    warnings.filterwarnings("ignore")
+
+
     # get username and password
     print("..........................................................................................")
     username = input("Username: ")
@@ -300,10 +305,10 @@ def TrumpOrBiden(results):
     correctOption = 0
     while correctOption == 0:
         print("Trump or Biden?")
-        print("[1]Trump")
-        print("[2]Biden")
+        print("[1] Trump")
+        print("[2] Biden")
         print("\n")
-        command = input("Enter your option(1 or 2):")
+        command = input("Enter your option(1 or 2): ")
 
         try:
             if (int(command.lower()) < 1) or (int(command.lower()) > 2):
@@ -370,7 +375,7 @@ def mostPopularTweets(results):
                 "..........................................................................................")
             for i in trumpTweets:
                 tweet = locale.format_string("%s", i[2], grouping=True)
-                likes = locale.format_string("%d", i[3], grouping=True)
+                likes = locale.format_string("%d", i[3], groauping=True)
                 retweets = locale.format_string("%d", i[4], grouping=True)
                 print(" - " + tweet)
                 print("(Likes: " + likes + ", Retweets: ", retweets + ")")
