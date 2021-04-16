@@ -375,7 +375,7 @@ def mostPopularTweets(results):
                 "..........................................................................................")
             for i in trumpTweets:
                 tweet = locale.format_string("%s", i[2], grouping=True)
-                likes = locale.format_string("%d", i[3], groauping=True)
+                likes = locale.format_string("%d", i[3], grouping=True)
                 retweets = locale.format_string("%d", i[4], grouping=True)
                 print(" - " + tweet)
                 print("(Likes: " + likes + ", Retweets: ", retweets + ")")
