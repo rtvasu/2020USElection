@@ -30,6 +30,21 @@ class electionDB:
             else:
                 print(err)
 
+    def testState(self, state):
+        query = ("SELECT * FROM States WHERE name = '%s'" % state)
+        result = self.executeQuery(query)
+        return result
+    
+    def testCounty(self, county):
+        query = ("SELECT * FROM County WHERE name = '%s'" % county)
+        result = self.executeQuery(query)
+        return result
+    
+    def testParty(self, party):
+        query = ("SELECT * FROM Party WHERE name = '%s'" % party)
+        result = self.executeQuery(query)
+        return result
+
     def getListioCountiesUnderState(self, state):
         query = ("""SELECT c.name as countyName 
                             FROM County c
@@ -273,10 +288,10 @@ class electionDB:
 
         # QUERY
         if countyid == 0:
-            query = ("""INSERT INTO winAndLosses (stateid, countyid, partyid, result) 
+            query = ("""INSERT INTO electionComments (stateid, countyid, partyid, result) 
                     VALUES (%d, NULL, %d, '%s')""" % (stateid, partyid, result))
         else:
-            query = ("""INSERT INTO winAndLosses (stateid, countyid, partyid, result) 
+            query = ("""INSERT INTO electionComments (stateid, countyid, partyid, result) 
                     VALUES (%d, %d, %d, '%s')""" % (stateid, countyid, partyid, result))
         result = self.executeQuery(query)
         if (result == -1):
