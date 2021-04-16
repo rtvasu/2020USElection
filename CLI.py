@@ -3,9 +3,9 @@
 """
 import mysql.connector
 from mysql.connector import errorcode
-import locale
 import getpass
 from electionDB import electionDB
+import locale
 # from os import system, name
 # import os
 # import string
@@ -30,6 +30,8 @@ config = {
     'database': 'project_1',
     'raise_on_warnings': True
 }
+
+locale.setlocale(locale.LC_ALL, 'en_US')
 
 """
     CONNECTING TO MYSQL SERVER
@@ -134,7 +136,7 @@ else:
                                 party = locale.format_string("%s", i[1], grouping=True)
                                 votes = locale.format_string("%d", i[2], grouping=True)
                                 print("The winning party in ", state, " is ", party,
-                                      " with " + votes + " votes & the total votes  is ", votes_total)
+                                      " with " + votes + " votes & the total votes =  ", votes_total)
                             print("\n")
 
                         # ASK TO CONTINUE
@@ -161,7 +163,7 @@ else:
 
                     while continue2 == 1:
                         totalVotes = results.totalVotesByState('a')
-                        totalResults = results.votingResultsbyPartybyState('a', 1, 0)
+                        totalResults = results.getResultsForAllStates()
                         if not totalVotes:
                             print("Please try again.")
                             print("\n")
@@ -176,11 +178,11 @@ else:
                                 party = locale.format_string("%s", i[1], grouping=True)
                                 votes = locale.format_string("%d", i[2], grouping=True)
                                 print("The winning party in ", state, " is ", party,
-                                      " with " + votes + " votes & the total votes  is ", votes_total)
+                                      " with " + votes + " votes & the total votes =  ", votes_total)
                             print("\n")
 
                         # ask if I can continue
-                        while(1):
+                        while 1:
                             yn = input("Continue? Y/N: ")
                             if yn == 'y':
                                 continue2 = 1
@@ -233,7 +235,7 @@ else:
                                     party = locale.format_string("%s", i[2], grouping=True)
                                     votes = locale.format_string("%d", i[3], grouping=True)
                                     print("The winning party in ", county, " is ", party,
-                                          " with " + votes + " votes & the total votes  is ", total_votes)
+                                          " with " + votes + " votes & the total votes =  ", total_votes)
                                 print("\n")
 
                             # ask if I can continue
@@ -285,7 +287,7 @@ else:
                                     party = locale.format_string("%s", i[2], grouping=True)
                                     votes = locale.format_string("%d", i[3], grouping=True)
                                     print("The winning party in ", county, " is ", party,
-                                          " with " + votes + " votes & the total votes  is ", total_votes)
+                                          " with " + votes + " votes & the total votes =  ", total_votes)
                                 print("\n")
 
                             # ask if I can continue
