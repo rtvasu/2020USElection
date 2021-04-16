@@ -1,10 +1,5 @@
 import mysql.connector
 from mysql.connector import errorcode
-import locale
-import decimal
-import fire
-import getpass
-import sys
 import csv
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -21,7 +16,7 @@ class electionDB:
     def __init__(self, cursor, cnx):
         self.cursor = cursor
         self.cnx = cnx
-    
+
     def executeQuery(self, query):
         cursor = self.cursor
         try:
@@ -37,122 +32,116 @@ class electionDB:
 
     def getListioCountiesUnderState(self, state):
         query = ("""SELECT c.name as countyName 
-                    FROM County c
-                    inner join States s on (c.stateid = s.stateid)
-                    WHERE s.name = '%s'""" % state)
+                            FROM County c
+                            inner join States s on (c.stateid = s.stateid)
+                            WHERE s.name = '%s'""" % state)
         result = self.executeQuery(query)
         return result
 
     def totalVotesByState(self, state):
         filterByStateCond = ""
-        if state.lower != 'a':
+        if state.lower() != 'a':
             filterByStateCond = "having s.name = '" + state + "'"
 
         query = ("""SELECT  s.name as state ,
-                          sum(total_votes) as total_votes_2020
-                    FROM VotesPerCounty v
-                    inner join County c on (v.countyid = c.countyid)
-                    inner join States s on (c.stateid = s.stateid)
-                    group by s.name 
-                    %s
-                    order by s.name asc""" % filterByStateCond)
+                                  sum(total_votes) as total_votes_2020
+                            FROM VotesPerCounty v
+                            inner join County c on (v.countyid = c.countyid)
+                            inner join States s on (c.stateid = s.stateid)
+                            group by s.name 
+                            %s
+                            order by s.name asc""" % filterByStateCond)
         result = self.executeQuery(query)
         return result
 
     def totalVotesByCounty(self, state, county):
         filterByCountyCond = ""
-        if county.lower != 'a':
+        if county.lower() != 'a':
             filterByCountyCond = "and c.name = '" + county + "'"
 
         query = ("""SELECT  s.name as state, c.name as county ,
-                        sum(total_votes) as total_votes_2020
-                    FROM VotesPerCounty v
-                    inner join County c on (v.countyid = c.countyid)
-                    inner join States s on (c.stateid = s.stateid)
-                    group by c.name, s.name
-                    having s.name = '%s' %s
-                     order by c.name asc""" % (state, filterByCountyCond))
+                                sum(total_votes) as total_votes_2020
+                            FROM VotesPerCounty v
+                            inner join County c on (v.countyid = c.countyid)
+                            inner join States s on (c.stateid = s.stateid)
+                            group by c.name, s.name
+                            having s.name = '%s' %s
+                             order by c.name asc""" % (state, filterByCountyCond))
         result = self.executeQuery(query)
         return result
 
     def demographicsByState(self, state):
-        # if (state != 'a' and state != 'A'):
-        filterByStateCond = "ss.name = '" + state + "'"
+        query = ("""select ss.name as 'States' ,
+                            ROUND(sum(pop_per_county),2) as 'population',
+                            ROUND((sum(demographicMen)/sum(pop_per_county))*100,2) as 'men',
+                            ROUND((sum(demographicWomen)/sum(pop_per_county))*100,2) as 'women',
+                            ROUND((sum(demographicWhite)/sum(pop_per_county))*100,2) as 'white',
+                            ROUND((sum(demographicBlack)/sum(pop_per_county))*100,2) as 'black',
+                            ROUND((sum(demographicHispanic)/sum(pop_per_county))*100,2) as 'hispanic',
+                            ROUND((sum(demographicAsian)/sum(pop_per_county))*100,2) as 'asian',
+                            ROUND((sum(demographicNative)/sum(pop_per_county))*100,2) as 'native',
+                            ROUND(avg(income),2) as 'average_income'
+                            from (
+                                     SELECT  c.name as county, 
+                                             c.countyid as countyid,
+                                             TotalPop as pop_per_county,
+                                             (cs.Men) as demographicMen,
+                                             (cs.Women) as demographicWomen,
+                                             (cs.White*TotalPop/100) as demographicWhite,
+                                             (cs.Black*TotalPop/100) as demographicBlack,
+                                             (cs.Hispanic*TotalPop/100) as demographicHispanic,
+                                             (cs.Asian*TotalPop/100) as demographicAsian,
+                                             (cs.Native*TotalPop/100) as demographicNative,
+                                             Income as income
+                                     FROM CountyStats cs
+                                     inner join County c on (cs.countyid = c.countyid)
+                            ) as Stats
 
-        query = ("""select ss.name as 'States', 
-                         ROUND(sum(pop_per_county),2) as 'Total Population',
-                         ROUND((sum(demographicMen)/sum(pop_per_county))*100,2) as 'Percentage of Men',
-                         ROUND((sum(demographicWomen)/sum(pop_per_county))*100,2) as 'Percentage of Women',
-                         ROUND((sum(demographicWhite)/sum(pop_per_county))*100,2) as 'Percentage of White',
-                         ROUND((sum(demographicBlack)/sum(pop_per_county))*100,2) as 'Percentage of Black',
-                         ROUND((sum(demographicHispanic)/sum(pop_per_county))*100,2) as 'Percentage of Hispanic',
-                         ROUND((sum(demographicAsian)/sum(pop_per_county))*100,2) as 'Percentage of Asian',
-                         ROUND((sum(demographicNative)/sum(pop_per_county))*100,2) as 'Percentage of Native'
-                     from (
-                         SELECT  c.name as county, 
-                         TotalPop as pop_per_county,
-
-                         (cs.Men) as demographicMen,
-                         (cs.Women) as demographicWomen,
-                         (cs.White*TotalPop/100) as demographicWhite,
-                         (cs.Black*TotalPop/100) as demographicBlack,
-                         (cs.Hispanic*TotalPop/100) as demographicHispanic,
-                         (cs.Asian*TotalPop/100) as demographicAsian,
-                         (cs.Native*TotalPop/100) as demographicNative
-
-                         FROM CountyStats cs
-                         inner join County c on (cs.countyid = c.countyid)
-                         inner join States s on (c.stateid = s.stateid)
-                     ) as Stats
-
-                     inner join County co on (co.name = county)
-                     inner join States ss on (co.stateid = ss.stateid)
-                     group by ss.name 
-                     having %s
-                     order by ss.name asc""" % filterByStateCond)
+                            inner join County co on (co.countyid = Stats.countyid)
+                            inner join States ss on (ss.stateid = co.stateid)
+                            group by ss.stateid
+                            having ss.name = '%s'
+                            order by ss.stateid asc""" % state)
         result = self.executeQuery(query)
         return result
-        
+
     def demographicsByCounty(self, state, county):
-        # if (state != 'a' and state != 'A'):
-        filterByCountyCond = "and c.name = '" + county + "'"
-
         query = ("""select ss.name as 'States', co.name as 'County', 
-                         ROUND(sum(pop_per_county),2) as 'Total Population',
-                         ROUND((sum(demographicMen)/sum(pop_per_county))*100,2) as 'Percentage of Men',
-                         ROUND((sum(demographicWomen)/sum(pop_per_county))*100,2) as 'Percentage of Women',
-                         ROUND((sum(demographicWhite)/sum(pop_per_county))*100,2) as 'Percentage of White',
-                         ROUND((sum(demographicBlack)/sum(pop_per_county))*100,2) as 'Percentage of Black',
-                         ROUND((sum(demographicHispanic)/sum(pop_per_county))*100,2) as 'Percentage of Hispanic',
-                         ROUND((sum(demographicAsian)/sum(pop_per_county))*100,2) as 'Percentage of Asian',
-                         ROUND((sum(demographicNative)/sum(pop_per_county))*100,2) as 'Percentage of Native'
-                     from (
-                         SELECT  c.name as county, 
-                         TotalPop as pop_per_county,
+                            ROUND(sum(pop_per_county),2) as 'population',
+                            ROUND((sum(demographicMen)/sum(pop_per_county))*100,2) as 'men',
+                            ROUND((sum(demographicWomen)/sum(pop_per_county))*100,2) as 'women',
+                            ROUND((sum(demographicWhite)/sum(pop_per_county))*100,2) as 'white',
+                            ROUND((sum(demographicBlack)/sum(pop_per_county))*100,2) as 'black',
+                            ROUND((sum(demographicHispanic)/sum(pop_per_county))*100,2) as 'hispanic',
+                            ROUND((sum(demographicAsian)/sum(pop_per_county))*100,2) as 'asian',
+                            ROUND((sum(demographicNative)/sum(pop_per_county))*100,2) as 'native',
+                            ROUND(sum(income),2) as 'average_income'
+                            from (
+                                     SELECT  c.name as county, 
+                                             c.countyid as countyid,
+                                             TotalPop as pop_per_county,
+                                             (cs.Men) as demographicMen,
+                                             (cs.Women) as demographicWomen,
+                                             (cs.White*TotalPop/100) as demographicWhite,
+                                             (cs.Black*TotalPop/100) as demographicBlack,
+                                             (cs.Hispanic*TotalPop/100) as demographicHispanic,
+                                             (cs.Asian*TotalPop/100) as demographicAsian,
+                                             (cs.Native*TotalPop/100) as demographicNative,
+                                             Income as income
+                                     FROM CountyStats cs
+                                     inner join County c on (cs.countyid = c.countyid)
+                            ) as Stats
 
-                         (cs.Men) as demographicMen,
-                         (cs.Women) as demographicWomen,
-                         (cs.White*TotalPop/100) as demographicWhite,
-                         (cs.Black*TotalPop/100) as demographicBlack,
-                         (cs.Hispanic*TotalPop/100) as demographicHispanic,
-                         (cs.Asian*TotalPop/100) as demographicAsian,
-                         (cs.Native*TotalPop/100) as demographicNative
-
-                         FROM CountyStats cs
-                         inner join County c on (cs.countyid = c.countyid)
-                         inner join States s on (c.stateid = s.stateid)
-                     ) as Stats
-
-                     inner join County co on (co.name = county)
-                     inner join States ss on (co.stateid = ss.stateid)
-                     group by ss.name, co.name
-                     having ss.name = '%s' and co.name = '%s'
-                     order by ss.name asc""" % (state, county))
+                            inner join County co on (co.countyid = Stats.countyid)
+                            inner join States ss on (ss.stateid = co.stateid)
+                            group by ss.stateid, co.countyid
+                            having ss.name = '%s' and co.name = '%s'
+                            order by ss.stateid asc""" % (state, county))
         result = self.executeQuery(query)
         return result
 
     def tweetsBiden(self, state, number):
-        if (not number):
+        if not number:
             number = 5
 
         query = ("""SELECT s.name, created_at, tweet, likes, retweets 
@@ -165,7 +154,7 @@ class electionDB:
         return result
 
     def tweetsTrump(self, state, number):
-        if (not number):
+        if not number:
             number = 5
 
         query = ("""SELECT s.name, created_at, tweet, likes, retweets 
@@ -177,37 +166,76 @@ class electionDB:
         result = self.executeQuery(query)
         return result
 
-    def votingResultsbyPartybyState(self, state, results=0):
-        limit = ""
-        if results == 1:
+    def votingResultsbyPartybyState(self, state, winnerForState=0, limiter=0):
+        filterByStateCond = winner = limit = ""
+        if winnerForState == 1:
+            winner = "where won = 'True'"
+        if limiter == 1:
             limit = " limit 1"
+        if state.lower() != 'a':
+            filterByStateCond = "having s.name = '" + state + "'"
 
-        query = ("""SELECT  s.name as state, p.name as party ,
-                   sum(total_votes) as total_votes_2020
-               FROM VotesPerCounty v
-               inner join County c on (v.countyid = c.countyid)
-               inner join States s on (c.stateid = s.stateid)
-               inner join Party p on (p.partyid = v.partyid)
-               group by s.name, p.name 
-               having s.name = '%s'
-                order by sum(total_votes) desc %s""" % (state, limit))
+        query = ("""SELECT  s.name as state, 
+                            p.name as party,
+                            sum(total_votes) as total_votes_2020
+                            FROM VotesPerCounty v
+
+                            inner join County c on (v.countyid = c.countyid)
+                            inner join States s on (c.stateid = s.stateid)
+                            inner join Party p on (p.partyid = v.partyid)
+                            %s
+                            group by v.partyid, s.stateid
+                            %s
+                            order by s.stateid, sum(total_votes) desc %s""" % (winner, filterByStateCond, limit))
+        result = self.executeQuery(query)
+        return result
+
+
+
+
+    def getResultsForAllStates(self):
+
+        query = ("""with topVoted as (SELECT  s.name as state, s.stateid,
+                            p.name as party,
+                            sum(total_votes) as total_votes_2020
+                            FROM VotesPerCounty v
+
+                            inner join County c on (v.countyid = c.countyid)
+                            inner join States s on (c.stateid = s.stateid)
+                            inner join Party p on (p.partyid = v.partyid)
+                            where won = 'True'
+                            group by v.partyid, s.stateid
+                            order by s.stateid, sum(total_votes))
+                select state, party, total_votes_2020 from topVoted 
+                where total_votes_2020 in
+                        (
+                        select max(total_votes_2020) 
+                        from topVoted
+                        inner join States s on (s.stateid = topVoted.stateid)
+                        group by  s.stateid)""")
         result = self.executeQuery(query)
         return result
 
     def votingResultsbyPartybyCounty(self, state, county, results):
-        limit = ""
+        winning = ""
+        filterByStateCond = ""
         if results == 1:
-            limit = " limit 1"
+            winning = " and v.won = 'True'"
+        if county.lower() != 'a':
+            filterByStateCond = "and c.name = '" + county + "'"
 
-        query = ("""SELECT  s.name as state, c.name as county, p.name as party ,
-               sum(total_votes) as total_votes_2020
-           FROM VotesPerCounty v
-           inner join County c on (v.countyid = c.countyid)
-           inner join States s on (c.stateid = s.stateid)
-            inner join Party p on (p.partyid = v.partyid)
-           group by s.name, c.name, p.name 
-           having s.name = '%s' and c.name = '%s'
-            order by sum(total_votes) desc %s""" % (state, county, limit))
+        query = ("""SELECT  s.name as state, 
+                   c.name as county, 
+                   p.name as party ,
+                   total_votes as total_votes_2020
+                  FROM VotesPerCounty v
+                
+                  inner join County c on (v.countyid = c.countyid)
+                  inner join States s on (c.stateid = s.stateid)
+                  inner join Party p on (p.partyid = v.partyid)
+                
+                  where s.name = '%s' %s %s
+                  order by total_votes desc""" % (state, filterByStateCond, winning))
         result = self.executeQuery(query)
         return result
 
@@ -236,7 +264,7 @@ class electionDB:
                 stateid = i[0]
 
         # get partyid
-        query = ("""select partyid from Party where abbreviation = '%s'""" % party)
+        query = ("""select partyid from Party where name = '%s'""" % party)
         result2 = self.executeQuery(query)
         if (result2 == -1):
             return -1
@@ -259,7 +287,7 @@ class electionDB:
         return 0
 
     # DATA MINING STUFF - results and demographics for a county
-    def getData(self, state, county):
+    def getData(self):
 
         query = ("""select 
                     ROUND(sum(pop_per_county),2) as 'population',
@@ -302,12 +330,14 @@ class electionDB:
                     group by ss.stateid, co.countyid, vpc.won, p.partyid 
                     having vpc.won  = 'True' and p.partyid = 1 or p.partyid = 2
                     order by ss.stateid asc""")
-        result = self.executeQuery(query)
-        return result
+        data = self.executeQuery(query)
+
+        success = self.generateCSV(data)
+        return success
 
     def generateCSV(self, data):
-        cursor = self.cursor
 
+        cursor = self.cursor
         column_names = [i[0] for i in cursor.description]
         fp = open('demographics_and_votes.csv', 'w', encoding="utf-8")
         myFile = csv.writer(fp, lineterminator='\n')
@@ -323,9 +353,6 @@ class electionDB:
         labels = ["Democratic", "Republican"]
         features = ["population", "men", "women", "white", "black", "hispanic", "asian", "native",
                     "average_income", "poverty", "employed", "unemployed"]
-        print(labels)
-        print(features)
-        print("\n")
 
         # load data into numpy array
         mydata = np.genfromtxt("demographics_and_votes.csv", dtype=None, delimiter=',', names=True)
@@ -357,33 +384,31 @@ class electionDB:
         X_train.fillna(X_train.mean(), inplace=True)
         X_test.fillna(X_test.mean(), inplace=True)
 
-        print(np.where(np.isnan(X_train)))
-
         # Create a Gaussian Classifier
         clf = RandomForestClassifier(n_estimators=100)
 
         # Train the model using the training sets
         clf.fit(X_train, y_train)
         y_pred = clf.predict(X_test)
+        print("....................................................................")
         print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
+        print("....................................................................")
+
 
         # plot
         feature_imp = pd.Series(clf.feature_importances_, index=features).sort_values(ascending=False)
-        print(feature_imp)
 
-        # Creating a bar plot
-        sns.barplot(x=feature_imp, y=feature_imp.index)
+        # # Creating a bar plot
+        # sns.barplot(x=feature_imp, y=feature_imp.index)
+        #
+        # # Add labels to your graph
+        # plt.xlabel('Feature Importance Score')
+        # plt.ylabel('Features')
+        # plt.title("Visualizing Important Features")
+        # plt.legend()
+        # plt.show()
 
-        # Add labels to your graph
-        plt.xlabel('Feature Importance Score')
-        plt.ylabel('Features')
-        plt.title("Visualizing Important Features")
-        plt.legend()
-        plt.show()
-
-
-
-        return 0
+        return feature_imp
 
     def predictData(self):
         return 0
