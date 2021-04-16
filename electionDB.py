@@ -9,6 +9,7 @@ from sklearn import datasets
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
+from prettytable import PrettyTable
 
 
 class electionDB:
@@ -86,6 +87,8 @@ class electionDB:
         return result
 
     def demographicsByState(self, state):
+        if state.lower() == 'alaska':
+            return -2
         query = ("""select ss.name as 'States' ,
                             ROUND(sum(pop_per_county),2) as 'population',
                             ROUND((sum(demographicMen)/sum(pop_per_county))*100,2) as 'men',
@@ -115,12 +118,14 @@ class electionDB:
                             inner join County co on (co.countyid = Stats.countyid)
                             inner join States ss on (ss.stateid = co.stateid)
                             group by ss.stateid
-                            having ss.name = '%s'
+                            having ss.name = '%s' and ss.name != 'alaska'
                             order by ss.stateid asc""" % state)
         result = self.executeQuery(query)
         return result
 
     def demographicsByCounty(self, state, county):
+        if state.lower() == 'alaska':
+            return -2
         query = ("""select ss.name as 'States', co.name as 'County', 
                             ROUND(sum(pop_per_county),2) as 'population',
                             ROUND((sum(demographicMen)/sum(pop_per_county))*100,2) as 'men',
@@ -150,7 +155,7 @@ class electionDB:
                             inner join County co on (co.countyid = Stats.countyid)
                             inner join States ss on (ss.stateid = co.stateid)
                             group by ss.stateid, co.countyid
-                            having ss.name = '%s' and co.name = '%s'
+                            having ss.name = '%s' and co.name = '%s'  and ss.name != 'alaska'
                             order by ss.stateid asc""" % (state, county))
         result = self.executeQuery(query)
         return result
@@ -201,7 +206,7 @@ class electionDB:
                             %s
                             group by v.partyid, s.stateid
                             %s
-                            order by s.stateid, sum(total_votes) desc %s""" % (winner, filterByStateCond, limit))
+                            order by s.stateid asc %s""" % (winner, filterByStateCond, limit))
         result = self.executeQuery(query)
         return result
 
@@ -250,7 +255,7 @@ class electionDB:
                   inner join Party p on (p.partyid = v.partyid)
                 
                   where s.name = '%s' %s %s
-                  order by total_votes desc""" % (state, filterByStateCond, winning))
+                  order by c.countyid asc""" % (state, filterByStateCond, winning))
         result = self.executeQuery(query)
         return result
 
@@ -388,30 +393,34 @@ class electionDB:
             'unemployed': mydata["unemployed"],
             'winning_party': mydata["winning_party"]
         })
-        print(data.head())
+        # print(data.head())
 
         X = data[['population', 'men', 'women', 'white', 'black', 'hispanic', 'asian', 'native',
                   'average_income', 'poverty', 'employed', 'unemployed']]  # Features
         y = data['winning_party']  # Labels
 
         # Split dataset into training set and test set
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1)  # 70% training and 30% test
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)  # 70% training and 30% test
         X_train.fillna(X_train.mean(), inplace=True)
         X_test.fillna(X_test.mean(), inplace=True)
 
         # Create a Gaussian Classifier
-        clf = RandomForestClassifier(n_estimators=100)
+        clf = RandomForestClassifier(n_estimators=200)
 
         # Train the model using the training sets
         clf.fit(X_train, y_train)
         y_pred = clf.predict(X_test)
-        print("....................................................................")
-        print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
-        print("....................................................................")
+        prediction = str(round(metrics.accuracy_score(y_test, y_pred)*100, 3))+"%"
+        # print("....................................................................")
+        # print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
+        # print("....................................................................")
 
 
         # plot
         feature_imp = pd.Series(clf.feature_importances_, index=features).sort_values(ascending=False)
+        table = PrettyTable(['Demographic', 'Percentage Influence'])
+        for index, val in feature_imp.iteritems():
+            table.add_row([index, str(round(val*100, 3))+"%"])
 
         # # Creating a bar plot
         # sns.barplot(x=feature_imp, y=feature_imp.index)
@@ -423,7 +432,7 @@ class electionDB:
         # plt.legend()
         # plt.show()
 
-        return feature_imp
+        return prediction, table
 
     def predictData(self):
         return 0
