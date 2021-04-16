@@ -5,6 +5,7 @@ from electionDB import electionDB
 import locale
 import numbers
 
+
 def startup():
     # get username and password
     print("..........................................................................................")
@@ -37,6 +38,7 @@ def startup():
             return (-1, -1)
     return cnx, cursor
 
+
 def homepage(results):
     print("..........................................................................................")
     print(".................................. HOME PAGE ......................................")
@@ -61,7 +63,7 @@ def homepage(results):
         except:
             print("Please enter a valid option.")
             continue
-    
+
     if (int(command.lower()) == 4):
         exit()
     menu = {
@@ -72,17 +74,18 @@ def homepage(results):
     }
 
     continueExecution = 1
-    #shorthand to call respective function
+    # shorthand to call respective function
     where = menu[int(command.lower())](results)
     print(where)
 
     while continueExecution == 1:
-        #user wants to see getStats/insertData/dataMine again
+        # user wants to see getStats/insertData/dataMine again
         if where == 0:
             where = menu[int(command.lower())](results)
-        #user wants to see home page
+        # user wants to see home page
         elif where == 1:
             return 1
+
 
 def getCorrectState(results):
     correctState = 0
@@ -98,10 +101,12 @@ def getCorrectState(results):
             correctState = 1
     return stateInput
 
+
 def getCorrectCounty(results):
     correctCounty = 0
     while correctCounty == 0:
-        countyInput = input("Here is a list of counties in this state. Please choose a county to view results for: ")
+        countyInput = input(
+            "Here is a list of counties in this state. Please choose a county to view results for: ")
         if not countyInput:
             print("\nError: Please enter a value.\n")
             continue
@@ -112,6 +117,7 @@ def getCorrectCounty(results):
             correctCounty = 1
     return countyInput
 
+
 def getCorrectParty(results):
     correctParty = 0
     while correctParty == 0:
@@ -121,10 +127,12 @@ def getCorrectParty(results):
             continue
         test = results.testParty(partyInput)
         if (not test):
-            print("\nError: Check if party exists (cannot be None) and is spelled correctly.\n")
+            print(
+                "\nError: Check if party exists (cannot be None) and is spelled correctly.\n")
         else:
             correctParty = 1
     return partyInput
+
 
 def votingResultsForState(results):
     print("..........................................................................................")
@@ -134,7 +142,7 @@ def votingResultsForState(results):
 
     # get correct state
     stateInput = getCorrectState(results)
-    
+
     # get total number of votes
     totalVotes = results.totalVotesByState(stateInput)
 
@@ -145,7 +153,7 @@ def votingResultsForState(results):
     # this is likely, happens when connection is lost
     if (totalVotes == -1):
         exit()
-    
+
     totalResults = results.votingResultsbyPartybyState(stateInput, 1, 1)
     # this is a reaaally edge case
     if not totalResults:
@@ -153,8 +161,8 @@ def votingResultsForState(results):
         exit()
     elif totalResults == -1:
         exit()
-    
-    #TODO: help aish, fix totalVotes (or double check if what I've done is correct)
+
+    # TODO: help aish, fix totalVotes (or double check if what I've done is correct)
     for i in totalVotes:
         state = locale.format_string("%s", i[0], grouping=True)
         votes_total = locale.format_string("%d", i[1], grouping=True)
@@ -164,8 +172,9 @@ def votingResultsForState(results):
         votes = locale.format_string("%d", totalResults[i][2], grouping=True)
         # votes_total = locale.format_string("%d", totalVotes[i][1], grouping=True)
         print("The winning party in ", state, " is ", party,
-                " with " + votes + " votes & the total votes =  ", votes_total)
+              " with " + votes + " votes & the total votes =  ", votes_total)
     print("\n")
+
 
 def votingResultsForAllStates(results):
     print("..........................................................................................")
@@ -182,15 +191,17 @@ def votingResultsForAllStates(results):
     # for i in totalVotes:
     #     votes_total = locale.format_string("%d", i[1], grouping=True)
 
-    #TODO: help aish, fix totalVotes (or double check if what I've done is correct)
+    # TODO: help aish, fix totalVotes (or double check if what I've done is correct)
     for i in range(len(totalResults)):
         state = locale.format_string("%s", totalResults[i][0], grouping=True)
         party = locale.format_string("%s", totalResults[i][1], grouping=True)
         votes = locale.format_string("%d", totalResults[i][2], grouping=True)
-        votes_total = locale.format_string("%d", totalVotes[i][1], grouping=True)
+        votes_total = locale.format_string(
+            "%d", totalVotes[i][1], grouping=True)
         print("The winning party in ", state, " is ", party,
-                " with " + votes + " votes & the total votes =  ", votes_total)
+              " with " + votes + " votes & the total votes =  ", votes_total)
     print("\n")
+
 
 def votingResultsForCounty(results):
     print("..........................................................................................")
@@ -213,13 +224,14 @@ def votingResultsForCounty(results):
         county = getCorrectCounty(results)
 
         countyTotalResults = results.totalVotesByCounty(stateInput, county)
-        countyVotingResults = results.votingResultsbyPartybyCounty(stateInput, county, 1)
+        countyVotingResults = results.votingResultsbyPartybyCounty(
+            stateInput, county, 1)
 
         if (not countyTotalResults) or (not countyVotingResults):
             exit()
         elif countyTotalResults == -1 or countyVotingResults == -1:
             exit()
-        
+
         for i in countyTotalResults:
             total_votes = locale.format_string("%d", i[2], grouping=True)
 
@@ -228,8 +240,9 @@ def votingResultsForCounty(results):
             party = locale.format_string("%s", i[2], grouping=True)
             votes = locale.format_string("%d", i[3], grouping=True)
             print("The winning party in ", county, " is ", party,
-                    " with " + votes + " votes & the total votes =  ", total_votes)
+                  " with " + votes + " votes & the total votes =  ", total_votes)
         print("\n")
+
 
 def votingResultsForAllCounties(results):
     print("..........................................................................................")
@@ -246,14 +259,15 @@ def votingResultsForAllCounties(results):
         exit()
     else:
         countyTotalVotes = results.totalVotesByCounty(stateInput, 'A')
-        countyVotingResults = results.votingResultsbyPartybyCounty(stateInput, 'A', 1)
+        countyVotingResults = results.votingResultsbyPartybyCounty(
+            stateInput, 'A', 1)
 
         if not countyTotalVotes:
             print("Error: Check if county exists and is spelled correctly.\n")
         elif countyTotalVotes == -1 or countyVotingResults == -1:
             exit()
         else:
-            #TODO: correct total_votes aish
+            # TODO: correct total_votes aish
             for i in countyTotalVotes:
                 total_votes = locale.format_string("%d", i[2], grouping=True)
 
@@ -262,8 +276,9 @@ def votingResultsForAllCounties(results):
                 party = locale.format_string("%s", i[2], grouping=True)
                 votes = locale.format_string("%d", i[3], grouping=True)
                 print("The winning party in ", county, " is ", party,
-                        " with " + votes + " votes & the total votes =  ", total_votes)
+                      " with " + votes + " votes & the total votes =  ", total_votes)
             print("\n")
+
 
 def getCorrectNumTweets(results):
     correctNum = 0
@@ -284,6 +299,28 @@ def getCorrectNumTweets(results):
             correctNum = 1
     return numberOfTweets
 
+
+def TrumpOrBiden(results):
+    correctOption = 0
+    while correctOption == 0:
+        print("Trump or Biden?")
+        print("[1]Trump")
+        print("[2]Biden")
+        print("\n")
+        command = input("Enter your option(1 or 2):")
+
+        try:
+            if (int(command.lower()) < 1) or (int(command.lower()) > 2):
+                print("Please enter a valid option.")
+                continue
+            else:
+                correctOption = 1
+        except:
+            print("Please enter a valid option.")
+            continue
+    return command
+
+
 def mostPopularTweets(results):
     print("..........................................................................................")
     print(".............................. MOST POPULAR TWEETS IN STATE ..............................")
@@ -292,47 +329,57 @@ def mostPopularTweets(results):
 
     stateInput = getCorrectState(results)
 
-    numberOfTweets = getCorrectNumTweets(results)
+    TrumpBidenOption = TrumpOrBiden(results)
 
-    bidenTweets = results.tweetsBiden(stateInput, numberOfTweets)
-    if not bidenTweets:
-        exit()
-    elif(bidenTweets == -1):
-        exit()
-    else:
-        print(
-            "..........................................................................................")
-        print(
-            "...................... MOST POPULAR TWEETS UNDER #TweetsBiden FOR %s ....................." % stateInput)
-        print(
-            "..........................................................................................")
-        for i in bidenTweets:
-            tweet = locale.format_string("%s", i[2], grouping=True)
-            likes = locale.format_string("%d", i[3], grouping=True)
-            retweets = locale.format_string("%d", i[4], grouping=True)
-            print(" - " + tweet)
-            print("(Likes: " + likes + ", Retweets: ", retweets + ")")
-        print("\n")
+    if(int(TrumpBidenOption.lower()) == 2):
 
-    trumpTweets = results.tweetsTrump(stateInput, numberOfTweets)
-    if not trumpTweets:
-        print("Error: Check if state exists, is spelled correctly and if number is valid.\n")
-    elif (trumpTweets == -1):
-        exit()
-    else:
-        print(
-            "..........................................................................................")
-        print(
-            "...................... MOST POPULAR TWEETS UNDER #TweetsTrump FOR %s ....................." % stateInput)
-        print(
-            "..........................................................................................")
-        for i in trumpTweets:
-            tweet = locale.format_string("%s", i[2], grouping=True)
-            likes = locale.format_string("%d", i[3], grouping=True)
-            retweets = locale.format_string("%d", i[4], grouping=True)
-            print(" - " + tweet)
-            print("(Likes: " + likes + ", Retweets: ", retweets + ")")
-        print("\n")
+        numberOfTweets = getCorrectNumTweets(results)
+
+        bidenTweets = results.tweetsBiden(stateInput, numberOfTweets)
+        if not bidenTweets:
+            exit()
+        elif(bidenTweets == -1):
+            exit()
+        else:
+            print(
+                "..........................................................................................")
+            print(
+                "...................... MOST POPULAR TWEETS UNDER #TweetsBiden FOR %s ....................." % stateInput)
+            print(
+                "..........................................................................................")
+            for i in bidenTweets:
+                tweet = locale.format_string("%s", i[2], grouping=True)
+                likes = locale.format_string("%d", i[3], grouping=True)
+                retweets = locale.format_string("%d", i[4], grouping=True)
+                print(" - " + tweet)
+                print("(Likes: " + likes + ", Retweets: ", retweets + ")")
+            print("\n")
+
+    elif(int(TrumpBidenOption.lower()) == 1):
+
+        numberOfTweets = getCorrectNumTweets(results)
+
+        trumpTweets = results.tweetsTrump(stateInput, numberOfTweets)
+        if not trumpTweets:
+            print(
+                "Error: Check if state exists, is spelled correctly and if number is valid.\n")
+        elif (trumpTweets == -1):
+            exit()
+        else:
+            print(
+                "..........................................................................................")
+            print(
+                "...................... MOST POPULAR TWEETS UNDER #TweetsTrump FOR %s ....................." % stateInput)
+            print(
+                "..........................................................................................")
+            for i in trumpTweets:
+                tweet = locale.format_string("%s", i[2], grouping=True)
+                likes = locale.format_string("%d", i[3], grouping=True)
+                retweets = locale.format_string("%d", i[4], grouping=True)
+                print(" - " + tweet)
+                print("(Likes: " + likes + ", Retweets: ", retweets + ")")
+            print("\n")
+
 
 def demoState(results):
     print("..........................................................................................")
@@ -350,16 +397,26 @@ def demoState(results):
         exit()
     else:
         for i in demographics:
-            print("-- ", locale.format_string("%s", i[0], grouping=True), " Demographics --")
-            print("Total Population - ", locale.format_string("%d", i[1], grouping=True))
-            print("Men - ", locale.format_string("%s", i[2], grouping=True), "%")
-            print("Women - ", locale.format_string("%s", i[3], grouping=True), "%")
-            print("White - ", locale.format_string("%s", i[4], grouping=True), "%")
-            print("Black - ", locale.format_string("%s", i[5], grouping=True), "%")
-            print("Hispanic - ", locale.format_string("%s", i[6], grouping=True), "%")
-            print("Asian - ", locale.format_string("%s", i[7], grouping=True), "%")
-            print("Native - ", locale.format_string("%s", i[8], grouping=True), "%")
+            print("-- ", locale.format_string("%s",
+                                              i[0], grouping=True), " Demographics --")
+            print("Total Population - ",
+                  locale.format_string("%d", i[1], grouping=True))
+            print("Men - ", locale.format_string("%s",
+                                                 i[2], grouping=True), "%")
+            print("Women - ", locale.format_string("%s",
+                                                   i[3], grouping=True), "%")
+            print("White - ", locale.format_string("%s",
+                                                   i[4], grouping=True), "%")
+            print("Black - ", locale.format_string("%s",
+                                                   i[5], grouping=True), "%")
+            print("Hispanic - ", locale.format_string("%s",
+                                                      i[6], grouping=True), "%")
+            print("Asian - ", locale.format_string("%s",
+                                                   i[7], grouping=True), "%")
+            print("Native - ", locale.format_string("%s",
+                                                    i[8], grouping=True), "%")
         print("\n")
+
 
 def demoCounty(results):
     print("..........................................................................................")
@@ -388,16 +445,26 @@ def demoCounty(results):
             exit()
         else:
             for i in demographics:
-                print("-- ", locale.format_string("%s", i[1], grouping=True), " Demographics --")
-                print("Total Population - ", locale.format_string("%d", i[2], grouping=True))
-                print("Men - ", locale.format_string("%s", i[3], grouping=True), "%")
-                print("Women - ", locale.format_string("%s", i[4], grouping=True), "%")
-                print("White - ", locale.format_string("%s", i[5], grouping=True), "%")
-                print("Black - ", locale.format_string("%s", i[6], grouping=True), "%")
-                print("Hispanic - ", locale.format_string("%s", i[7], grouping=True), "%")
-                print("Asian - ", locale.format_string("%s", i[8], grouping=True), "%")
-                print("Native - ", locale.format_string("%s", i[9], grouping=True), "%")
+                print("-- ", locale.format_string("%s",
+                                                  i[1], grouping=True), " Demographics --")
+                print("Total Population - ",
+                      locale.format_string("%d", i[2], grouping=True))
+                print("Men - ", locale.format_string("%s",
+                                                     i[3], grouping=True), "%")
+                print("Women - ", locale.format_string("%s",
+                                                       i[4], grouping=True), "%")
+                print("White - ", locale.format_string("%s",
+                                                       i[5], grouping=True), "%")
+                print("Black - ", locale.format_string("%s",
+                                                       i[6], grouping=True), "%")
+                print("Hispanic - ", locale.format_string("%s",
+                                                          i[7], grouping=True), "%")
+                print("Asian - ", locale.format_string("%s",
+                                                       i[8], grouping=True), "%")
+                print("Native - ", locale.format_string("%s",
+                                                        i[9], grouping=True), "%")
             print("\n")
+
 
 def checkContinue():
     while 1:
@@ -410,6 +477,8 @@ def checkContinue():
             print("Error: Please enter valid input.\n")
 
 # returns 0 when user wants to see getStats menu, 1 when user wants to see home page menu
+
+
 def getStats(results):
     print("..........................................................................................")
     print("......................................... WHAT STATS WOULD YOU LIKE TO SEE? .........................................")
@@ -449,13 +518,15 @@ def getStats(results):
 
     continueExecution = 1
     while continueExecution == 1:
-        #shorthand to call respective function
+        # shorthand to call respective function
         menu[int(command.lower())](results)
         continueExecution = checkContinue()
 
     return continueExecution
 
 # returns 0 when user wants to start over the insertData process
+
+
 def insertData(results):
     print("..........................................................................................")
     print(".................................. ADD YOUR COMMENT ......................................")
@@ -527,7 +598,6 @@ def insertData(results):
                 return 0
             print("\n")
 
-
     elif yn.lower() == 'n':
         # Get the winning and losing votes
         print("..........................................................................................")
@@ -537,7 +607,8 @@ def insertData(results):
         stateResults = results.votingResultsbyPartybyState(state, 0)
 
         if not stateResults:
-            print("Sorry, no results available for this state. Check if state exists and is spelled correctly.\n")
+            print(
+                "Sorry, no results available for this state. Check if state exists and is spelled correctly.\n")
             print("\n")
         elif (stateResults == -1):
             exit()
@@ -561,6 +632,7 @@ def insertData(results):
         else:
             print("Sorry, try again.\n")
             return 0
+
 
 def dataMine(results):
     print("..........................................................................................")
@@ -599,24 +671,25 @@ def root():
             continue
         else:
             successConnect = 1
-    
+
     # initialize electionDB class object
     results = electionDB(cursor, cnx)
 
-    #shorthand to call respective function
+    # shorthand to call respective function
     where = homepage(results)
 
     # where exists only when user has gone inside and wants to see home page again
     if where:
 
-        #this is okay because if home page ever returns, it's because it wants to see the home page again
+        # this is okay because if home page ever returns, it's because it wants to see the home page again
         while 1:
-            #user wants to see homepage again
+            # user wants to see homepage again
             homepage(results)
 
     cursor.close()
     cnx.close()
     return
+
 
 root()
 exit()
