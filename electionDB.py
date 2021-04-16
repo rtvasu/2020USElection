@@ -1,5 +1,4 @@
 import mysql.connector
-from mysql.connector import errorcode
 import csv
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -10,6 +9,10 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
 from prettytable import PrettyTable
+import warnings
+from pandas.core.common import SettingWithCopyWarning
+warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
+warnings.filterwarnings("ignore")
 
 
 class electionDB:
