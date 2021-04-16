@@ -15,9 +15,11 @@ def startup():
 
 
     # get username and password
-    print("..........................................................................................")
+    print("..........................................................................................\n")
+    print("Please enter your authetication information to get started: \n")
     username = input("Username: ")
     password = getpass.getpass(prompt='Password: ', stream=None)
+    print("\n")
 
     config = {
         'user': username,
@@ -83,7 +85,6 @@ def homepage(results):
     continueExecution = 1
     # shorthand to call respective function
     where = menu[int(command.lower())](results)
-    print(where)
 
     while continueExecution == 1:
         # user wants to see getStats/insertData/dataMine again
@@ -207,7 +208,7 @@ def votingResultsForAllStates(results):
 
 def votingResultsForCounty(results):
     print("..........................................................................................")
-    print(".........................,.... VOTING RESULTS FOR A COUNTY ...............................")
+    print(".............................. VOTING RESULTS FOR A COUNTY ...............................")
     print("..........................................................................................")
     print("\n")
 
@@ -375,7 +376,7 @@ def mostPopularTweets(results):
                 "..........................................................................................")
             for i in trumpTweets:
                 tweet = locale.format_string("%s", i[2], grouping=True)
-                likes = locale.format_string("%d", i[3], groauping=True)
+                likes = locale.format_string("%d", i[3], grouping=True)
                 retweets = locale.format_string("%d", i[4], grouping=True)
                 print(" - " + tweet)
                 print("(Likes: " + likes + ", Retweets: ", retweets + ")")
@@ -527,7 +528,7 @@ def insertData(results):
 
     state = getCorrectState(results)
     while 1:
-        yn = input("Do you want to select a county? Y/N: ").lower()
+        yn = input("\nDo you want to select a county? Y/N: ").lower()
         if (yn == 'y') or (yn == 'n'):
             break
         else:
@@ -572,7 +573,17 @@ def insertData(results):
 
             # insert data
             party = getCorrectParty(results)
-            result = input("Enter comment for county (400 character limit): ")
+
+            validComment = 0
+            while(validComment == 0):
+                result = input("Enter comment for county (100 character limit): ")
+                if len(result) == 0:
+                    print("\nPlease enter a value.\n")
+                elif (len(result) > 100):
+                    print("\nComment too long, try again.\n")
+                else:
+                    validComment = 1
+
             success = results.addResults(state, county, party, result)
             print("\n")
 
@@ -609,7 +620,16 @@ def insertData(results):
 
         # insert data
         party = getCorrectParty(results)
-        result = input("Enter comment for state (400 character limit): ")
+
+        validComment = 0
+        while(validComment == 0):
+                result = input("Enter comment for county (100 character limit): ")
+                if len(result) == 0:
+                    print("\nPlease enter a value.\n")
+                elif (len(result) > 100):
+                    print("\nComment too long, try again.\n")
+                else:
+                    validComment = 1
         success = results.addResults(state, 0, party, result)
 
         if success == 0:
@@ -673,7 +693,8 @@ def root():
             continue
         else:
             successConnect = 1
-
+    
+    print("Successfully connected!\n")
     # initialize electionDB class object
     results = electionDB(cursor, cnx)
 
