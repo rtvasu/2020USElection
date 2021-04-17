@@ -6,7 +6,6 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn import metrics
 from sklearn import datasets
 import seaborn as sns
-import matplotlib.pyplot as plt
 import numpy as np
 from prettytable import PrettyTable
 import warnings
