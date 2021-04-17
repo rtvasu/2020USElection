@@ -306,8 +306,8 @@ def TrumpOrBiden(results):
     correctOption = 0
     while correctOption == 0:
         print("Trump or Biden?")
-        print("[1] Trump")
-        print("[2] Biden")
+        print("[1] #TweetsTrump")
+        print("[2] #TweetsBiden")
         print("\n")
         command = input("Enter your option(1 or 2): ")
 
