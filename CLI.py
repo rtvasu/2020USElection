@@ -566,7 +566,7 @@ def insertData(results):
             exit()
         else:
             for i in countyResults:
-                party = locale.format_string("%s", i[2], grouping=True)
+                party = locale.format_string("%s", i[4], grouping=True)
                 totalVotes = locale.format_string("%d", i[3], grouping=True)
                 print(party + " = " + totalVotes + " votes")
             print("\n")
@@ -613,7 +613,7 @@ def insertData(results):
             exit()
         else:
             for i in stateResults:
-                party = locale.format_string("%s", i[1], grouping=True)
+                party = locale.format_string("%s", i[3], grouping=True)
                 totalVotes = locale.format_string("%d", i[2], grouping=True)
                 print(party + " = " + totalVotes + " votes")
             print("\n")

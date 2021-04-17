@@ -44,7 +44,7 @@ class electionDB:
         return result
     
     def testParty(self, party):
-        query = ("SELECT * FROM Party WHERE name = '%s'" % party)
+        query = ("SELECT * FROM Party WHERE name = '%s' or abbreviation = '%s'" % (party, party))
         result = self.executeQuery(query)
         return result
 
@@ -199,7 +199,8 @@ class electionDB:
 
         query = ("""SELECT  s.name as state, 
                             p.name as party,
-                            sum(total_votes) as total_votes_2020
+                            sum(total_votes) as total_votes_2020,
+                            p.abbreviation as party
                             FROM VotesPerCounty v
 
                             inner join County c on (v.countyid = c.countyid)
@@ -249,7 +250,8 @@ class electionDB:
         query = ("""SELECT  s.name as state, 
                    c.name as county, 
                    p.name as party ,
-                   total_votes as total_votes_2020
+                   total_votes as total_votes_2020,
+                   p.abbreviation as party
                   FROM VotesPerCounty v
                 
                   inner join County c on (v.countyid = c.countyid)
@@ -286,7 +288,7 @@ class electionDB:
                 stateid = i[0]
 
         # get partyid
-        query = ("""select partyid from Party where name = '%s'""" % party)
+        query = ("""select partyid from Party where name = '%s' or abbreviation = '%s'""" % (party, party))
         result2 = self.executeQuery(query)
         if (result2 == -1):
             return -1
