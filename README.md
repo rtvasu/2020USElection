@@ -14,6 +14,7 @@ This is specifically written for a Windows 10 system, but can be used in general
       5. mysql.connector
       6. getpass
   5. There are other imported libraries being used, but they should be part of the above packages or come pre-installed with python itself
+  6. On the marmoset04.shoshin.uwaterloo.ca server, run the createTables.sql on the project_1 database using ```source createTables.mysq;```
   
   ## How to launch it
   Use the command ```py -m CLI.py```
